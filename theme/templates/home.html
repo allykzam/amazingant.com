@@ -1,0 +1,55 @@
+{% extends "_base.html" %}
+{% import "_lib.html" as lib with context %}
+
+{% block entirebody %}
+    <!--
+        I want the home page to have a max width, but other pages in the site
+        may have prose or code samples that are easier to read with a wider view
+        of the site. So the home page gets this max-width rule.
+    -->
+    <style type="text/css">
+        body {
+            max-width: 1000px;
+        }
+    </style>
+    <section class="home-desc">
+        <p>
+            Welcome to my wobsite on the interwho. If you're interested in tech
+            and stuff like I am, there should be lots here for you to look at;
+            if you're not sure what a blag is or what interwho I'm talking
+            about, then you're probably either looking me up (check out the
+            About Me page) or in the wrong place. At any rate, this is my site,
+            and as they say, there are many like it, but this one is mine.
+        </p>
+    </section>
+
+    {% macro _render_link(title, url, color, image, desc) %}
+    <a href="{{ url}}" style="background-color: {{ color }}; background-image: url('/theme/images/{{ image }}');">
+            <h1>{{ title }}</h1>
+            <p>{{ desc }}</p>
+        </a>
+    {% endmacro %}
+
+    <section class="home-links">
+        {% for linkdef in LINKS_EX %}
+            {{ _render_link(*linkdef) }}
+        {% endfor %}
+
+        <hr />
+
+        {% for page in PAGES %}
+            {% if page.metadata.get('show-link') %}
+                <a href="{{ SITEURL }}/{{ page.url }}" style="background-color: {{ page.metadata.get('home-color') }}; background-image: url('/theme/images/{{ page.metadata.get('home-image') }}');">
+                    <h1>{{ page.metadata.get("home-title", page.title) }}</h1>
+                    <p>{{ page.metadata.get("home-desc", "") }}</p>
+                </a>
+            {% endif %}
+        {% endfor %}
+
+        <hr />
+
+        {% for linkdef in SOCIAL_EX %}
+            {{ _render_link(*linkdef) }}
+        {% endfor %}
+    </section>
+{% endblock %}

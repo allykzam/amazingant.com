@@ -1,0 +1,22 @@
+Copyright © 2016, Anthony Perez a.k.a. amazingant
+
+Unless otherwise stated, all prose, photos, and similar content are licensed
+under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0
+International License. The license and its full details can be found at:
+
+https://creativecommons.org/licenses/by-nc-sa/4.0/
+
+
+The source code used here to build the site is licensed under the ISC license,
+which is available at:
+
+http://opensource.org/licenses/ISC
+
+
+Source code referenced from external sources, such as GitHub, are subject to
+their own licensing terms.
+
+The base theme (built with a lot of HTML and templating code) has its own
+license available under the `theme` directory, as the original theme was created
+by someone else. Please see that license file for more information about the
+license used therein.

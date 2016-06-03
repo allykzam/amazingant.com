@@ -1,0 +1,40 @@
+{% macro category_glyph(category) %}
+    {% if category %}
+        <img class="category-glyph" src="/theme/images/category-{{ category.slug }}.png" alt="{{ category.name }}" />
+    {% endif %}
+{% endmacro %}
+
+{% macro article_illustration(article) %}
+    {% if article.photo_image %}
+        <div class="article-illustration">
+            {% for name, photo, thumb in [article.photo_image] %}
+                <img src="{{ SITE_URL}}/{{ photo }}">
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endmacro %}
+
+{% macro article_time(article) %}
+<time datetime="{{ article.date.isoformat() }}" pubdate>{{ article.date | strftime("%Y-%m-%d %H:%M (UTC)") }}</time>
+{% endmacro %}
+
+{% macro article_footer(article) %}
+    <ul class="meta">
+        <li class="yline author vcard">
+            Posted by <span class="fn">{{ article.author }}</span>
+            {% if article.category %}
+                in <a class="category" href="{{ SITEURL }}/{{ article.category.rul }}">
+                    {{ article.category }}
+                </a>
+            {% endif %}
+        </li>
+        <li>{{ article_time(article) }}</li>
+        {% if article.tags %}
+            <li class="tags">
+                {% for tag in article.tags %}
+                    <a class="tag" href="{{ SITEURL }}/{{ tag.url }}">#{{ tag }}</a>
+                {% endfor %}
+            </li>
+        {% endif %}
+    </ul>
+{% endmacro %}

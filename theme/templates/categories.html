@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% import "_lib.html" as lib %}
+
+{% block title %}Categories / {{ SITENAME }}{% endblock %}
+
+{% block content %}
+    <section class="categories">
+        <h1>Categories</h1>
+
+        <ul>
+            {% for category, articles in categories %}
+                <li>
+                    <a href="{{ SITEURL }}/{{ category.url }}">
+                        {{ category.name }}
+                    </a>
+                    - {{ articles | length }}
+                </li>
+            {% endfor %}
+        </ul>
+    </section>
+{% endblock %}

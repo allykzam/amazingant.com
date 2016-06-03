@@ -1,0 +1,17 @@
+{% extends "_article_list.html" %}
+{% import "_lib.html" as lib with context %}
+
+{% block title %}{{ category.name }} / {{ SITENAME }}{% endblock %}
+
+{% block content %}
+    <h1>
+        {% if CATEGORY_FEED_ATOM %}
+            <a href="{{ SITEURL }}/{{ CATEGORY_FEED_ATOM % category.slug }}" class="category-atom">
+                Atom feed
+            </a>
+        {% endif %}
+        {{ category.name }}
+    </h1>
+
+    {{ super() }}
+{% endblock %}

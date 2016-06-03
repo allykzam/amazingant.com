@@ -1,0 +1,21 @@
+This theme has been modified a bit, and any such modifications are:
+
+Copyright © 2016, Anthony Perez a.k.a. Amazingant
+
+The original theme that I started with was created by Lexy Munroe a.k.a. Eeevee,
+and as such is:
+
+Copyright © 2014, Lexy Munroe a.k.a. Eevee
+
+The original code for the theme came from @eevee's at commit b8ec264, which can
+be found at:
+
+https://github.com/eevee/eev.ee/commit/b8ec264b88be32e55bb02ea0fe1efbc3d3d593cc
+
+Both the original theme at the time I started working on my modications, and my
+modifications since then, are licensed under the ISC license:
+
+http://opensource.org/licenses/ISC
+
+As Eevee's license file says, do what you want with the code, but please leave
+my (and her) name on it.

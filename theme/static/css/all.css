@@ -1,0 +1,106 @@
+html {
+    background-image: url("/theme/images/background.png");
+}
+
+body {
+    background-color: #EEEEEE;
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 2em;
+    margin-bottom: 2em;
+    padding: 1em 1.5em;
+    border-radius: 2em;
+}
+
+.home-desc {
+    font-size: large;
+    padding-bottom: 0.5em;
+}
+
+.home-links > a {
+    display: block;
+    border-radius: 0.5em;
+    background-size: auto 3.75em;
+    background-position: right 0.5em top 0.5em;
+    background-repeat: no-repeat;
+    padding: 0.5em 6.0em 0.5em 1.0em;
+    margin: 0.5em 1.0em;
+    text-decoration: none;
+    color: #EEEEEE;
+}
+
+.home-links > a h1 {
+    font-size: 2em;
+    margin: 0;
+    text-shadow:
+         0.5px  0.5px 0.5px #000,
+        -0.5px  0.5px 0.5px #000,
+         0.5px -0.5px 0.5px #000,
+        -0.5px -0.5px 0.5px #000
+}
+
+.home-links > a p {
+    margin: 0;
+    font-size: 1.1em;
+    color: #DDDDDD;
+    text-shadow: 0.5px 0.5px 0.5px #222222;
+}
+
+div#content, aside#sidebar {
+    display: table-cell;
+}
+
+aside#sidebar {
+    /*
+        Allow some resize in the sidebar, but most of the page width
+        should be dedicated to the content.
+    */
+    width: 30%;
+    max-width: 350px;
+    min-width: 250px;
+}
+
+header > h1 > a {
+    color: #333333;
+    text-decoration: none;
+    font-size: larger;
+}
+
+article > header .meta {
+    float: right;
+    font-family: monospace;
+    font-size: 1.25em;
+    margin-top: 0.25em;
+}
+
+h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {
+    text-decoration: none;
+    color: #333333;
+}
+
+#site-desc {
+    font-size: 0.75em;
+}
+
+div#content:first-child {
+    color: #333333;
+}
+
+div#content > article {
+    padding-top: 0.5em;
+    padding-right: 0.5em;
+}
+
+div#content > footer {
+    padding-top: 2em;
+}
+
+a:hover {
+    text-decoration: underline;
+    color: #0000EE;
+}
+
+#sidebar ul, #sidebar ol {
+    list-style-type: none;
+}
