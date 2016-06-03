@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>F# and WPF / Tech Babble</title>
+        <meta name="author" content="amazingant" />
+
+
+        <meta name="HandheldFriendly" content="True" />
+        <meta name="MobileOptimized" content="320" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+        <link href="/favicon.png" rel="icon" />
+        <link
+            href="/theme/css/all.css"
+            media="screen, projection"
+            rel="stylesheet"
+            type="text/css"
+            />
+
+    </head>
+    <body>
+    <header role="banner">
+        <h1><a href="/">Tech Babble | <span id="site-desc">the random musings of a techie</span></a></h1>
+        <nav role="navigation"></nav>
+    </header>
+    <div id="main">
+        <div id="content">
+    <article class="single" role="article">
+        <header>
+            <p class="meta"><time datetime="2014-12-08T16:53:00+00:00" pubdate>2014-12-08 16:53 (UTC)</time>
+</p>
+            <h1>
+                <a href="/blog/2014/12/08/FSharp-and-WPF/">
+                    F# and WPF
+                </a>
+            </h1>
+        </header>
+
+        <div class="entry-content">
+            
+            <p>In certain projects, it may be deemed appropriate to utilize both F# and WPF.
+Visual Studio has a large number of issues that make this difficult, not the
+least of which is that it simply doesn't support creating a WPF project with F#
+out-of-the-box. What follows is a guide based on what I've run into, which
+should be enough to get up-and-running. Please be aware that I've tried to work
+with something resembling the Model-View-ViewModel design pattern, but I can't
+say as I've strictly adhered to it here or anywhere else -- I also provide an
+example type named <code>CarListViewController</code>, which is used to show how one might
+write a code-behind file with event handlers, etc., as has typically been done
+in WinForms projects.</p>
+<p>Although I will explain some F#-isms, don't expect this tutorial to explain all
+F# to you. This will go more smoothly if you've played around with F# a bit
+already. Assume the same disclaimer for WPF, but doubled, as I touch on XAML and
+WPF less than I do on F#. This is really about mixing the two, not getting
+started in one of them.</p>
+<p>Also of note, I'm writing this while working with Visual Studio 2013
+Professional edition, and so some aspects of this may not match expectations if
+my steps are followed with a different version. If the licensing terms are
+acceptable, the Community edition of Visual Studio 2013 and later supports
+extensions, and should work well if Professional is not available.</p>
+<!-- more -->
+
+<h3>Visual Studio 2010 Support</h3>
+<p>Visual Studio 2010 and earlier aren't supported at all for this method of
+building a F#/WPF application, because of the magic of type providers.
+Unfortunately, they were introduced into Visual Studio with 2012 and the release
+of F# 3.0. There are other ways this can be done, but none of them feel as
+well-polished, so I won't go into detail on them.</p>
+<p>The best option I can think of when build a F#/WPF application when Visual
+Studio 2010 or earlier must be used is to build the WPF application in VB or C#,
+but only use it for the XAML and code-behind files, referencing a separate F#
+library containing the Model and ViewModel layers of the MVVM pattern.</p>
+<p>I only mention all of this because I've had to support building everything in
+Visual Studio 2010, so while this tutorial may work well for some, it has the
+potential to be entirely useless for others.</p>
+<h3>One-Time Setup</h3>
+<p>These extra tools are not required when working with an existing project, but
+may still prove useful at some later point. First up, download and install the
+<code>F# Empty WPF Project</code> extension; this can be found
+<a href="https://visualstudiogallery.msdn.microsoft.com/e0907c99-bb04-4eb8-9692-9333d5ff4399">here</a>. Next, use Visual Studio's Extensions and
+Updates window to find and install the <code>Visual F# Power Tools</code> extension, and
+then under <code>Tools -&gt; Options -&gt; General</code> enable the <code>Folder organization</code>
+option. The F# Power Tools extension isn't strictly required at all, but makes
+the process of adding/using folders in an F# project a bit easier, among other
+wonderful goodies. It's certainly worth installing if you plan to use F#, even
+if you don't plan to work with WPF. See <a href="https://fsprojects.github.io/VisualFSharpPowerTools/folderorganization.html#Limitations">this section</a>
+for some of the pitfalls of folders in F# projects; it's getting better, but
+isn't exactly a perfect situation.</p>
+<h3>Getting Started</h3>
+<p>Once the empty project extension is installed, create a new project using the
+<code>F# Empty Windows App (WPF)</code> template; I've named mine <code>FSharpWpfGuide</code>. This
+project type automatically includes three NuGet packages:</p>
+<ul>
+<li><code>Expression.Blend.Sdk</code> -- I haven't actually used this, so I'm not entirely
+  sure of its purpose.</li>
+<li><code>FSharp.ViewModule.Core</code> -- provides base classes which I'll be using to make
+  the MVVM pattern and use of <code>ICommand</code> much easier</li>
+<li><code>FsXaml.Wpf</code> -- includes a type provider for F# which parses XAML files and
+  provides type definitions for them</li>
+</ul>
+<p>The magic sauce here is the type provider from <code>FsXaml.Wpf</code>; for readers not
+familiar with type providers, what this does is parses a XAML file while
+developing in Visual Studio <em>before</em> compiling. The result is a type definition
+that can be used to generate the associated component, and provides properties
+for any XAML elements with an <code>x:Name</code> attribute. It might not seem like much,
+but I promise it's magic. ;)</p>
+<p><strike>Before moving forward, ask Visual Studio to build the solution, and a
+warning will appear. There's a lot of text in the warning window, but the gist
+is that since the type provider needs to read and write files on the local
+machine, and will execute code, there's potential for a malicious type provider
+to be written. This is the part where I warn that Visual Studio should not be
+run as an administrator. That said, to continue, the type provider needs to be
+enabled.</strike></p>
+<p>This warning doesn't come up anymore, as of Visual Studio 2015 with Update 1.
+Yay!</p>
+<h4>Files</h4>
+<p>According to the Solution Explorer, the new project should contain the following
+files:</p>
+<ul>
+<li><code>MainWindow.xaml</code> and <code>MainWindow.xaml.fs</code></li>
+<li>
+<p>These are the XAML file and its code-behind for a default empty window</p>
+</li>
+<li>
+<p><code>App.xaml</code></p>
+</li>
+<li>
+<p>This file matches the file named <code>Application.xaml</code> which is typically
+    created in Visual Studio's existing WPF project template. I won't get into
+    the details of what it can do, but anything that a normal <code>Application.xaml</code>
+    file could do can be done here</p>
+</li>
+<li>
+<p><code>App.fs</code></p>
+</li>
+<li>
+<p>This is akin to the <code>Program.cs</code> file in a C# project, or the default
+    <code>Module1.vb</code> in a VB console application (VB doesn't give the developer
+    access to this in a WinForms or WPF project), and it contains the main
+    entry-point for the application. At this point, it should already contain
+    use of the <code>FsXaml.Xaml</code> type provider to load up <code>App.xaml</code> and launch it.</p>
+</li>
+<li>
+<p><code>App.config</code></p>
+</li>
+<li>
+<p>As with any C# or VB project, this optionally contains settings and runtime
+    configurations for the application.</p>
+</li>
+<li>
+<p><code>packages.config</code></p>
+</li>
+<li>NuGet utilizes this XML file to track the packages installed, as well as the
+    required version numbers.</li>
+</ul>
+<h3>Adding a Window</h3>
+<p>For the sake of going through more work, remove the files <code>MainWindow.xaml</code> and
+<code>MainWindow.xaml.fs</code>. "MainWindow" is a more apt name, but I'll be using
+"MainForm" simply to force myself to show how to change the startup window.</p>
+<p>In the Solution Explorer, right-click <code>App.xaml</code> and select <code>Add Above -&gt; New
+Item...</code>, then type <code>MainForm.xaml</code> into the file-name box. The particular file
+type selected doesn't matter much, so long as it's a single file being added. I
+strongly recommend simply not touching it, and leaving <code>Source File</code> selected.</p>
+<p>To ensure that the XAML file is included correctly, right-click it in Solution
+Explorer, pick <code>Properties</code>, and change the <code>Build Action</code> to <code>Resource</code>. It is
+<strong>VERY IMPORTANT</strong> that this be done for <strong>EVERY</strong> <code>*.xaml</code> file, or the
+application will throw an exception at runtime while trying to utilize the
+associated control(s). It will not provide the wonderful compile-time errors and
+warnings that F# developers are used to.</p>
+<p>Moving on, replace all of the text in the file with the following:</p>
+<pre><code class="XML">&lt;Window
+    xmlns=&quot;http://schemas.microsoft.com/winfx/2006/xaml/presentation&quot;
+    xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot;
+    Title=&quot;Testing&quot;
+    Height=&quot;200&quot;
+    Width=&quot;400&quot;
+    &gt;
+    &lt;Canvas&gt;
+    &lt;/Canvas&gt;
+&lt;/Window&gt;
+</code></pre>
+
+<p>The contents so far should be pretty easy to understand, so I'll gloss over them
+and stick to the F#-specifics. In the Solution Explorer, right-click <code>Add Below
+-&gt; New Item...</code>, and name the new file <code>MainForm.xaml.fs</code>.</p>
+<p>Based on the way F# handles values, if you're not already aware, F# code cannot
+reference values which have not been declared yet. By extension, this means that
+files have to be compiled in a certain order, else the compiler will reject code
+which references values from other un-compiled files. This is why Visual Studio
+gives us the option to arrange files in a different order with F#, offering the
+<code>Add Above</code> and <code>Add Below</code> options for new files.</p>
+<p>Replace the contents of the new <code>MainForm.xaml.fs</code> with the following:</p>
+<pre><code class="FSharp">namespace FSharpWpfGuide.Views
+
+type MainForm = FsXaml.XAML&lt;&quot;MainForm.xaml&quot;, true&gt;
+
+namespace FSharpWpfGuide.ViewModels
+
+type MainFormViewModel() =
+    member __.Title = &quot;F# |&gt; WPF Guide&quot;
+</code></pre>
+
+<p>This new code uses the <code>FsXaml.XAML</code> type provider to generate a type definition
+named <code>MainForm</code>, which is based on the contents of <code>MainForm.xaml</code>. The second
+parameter, <code>true</code> in this case, indicates whether or not the type provider
+should generate properties for XAML nodes with an <code>x:Name</code> attribute; it's
+easiest to just assume this should always be <code>true</code>. In a different namespace,
+we then declare a simple type which contains a single value. There isn't much
+need for this, but it allows for our first data binding. Before proceeding,
+build the solution.</p>
+<p>Back in <code>MainForm.xaml</code>, add the following:</p>
+<pre><code class="diff">  &lt;Window
+      xmlns=&quot;https://schemas.microsoft.com/winfx/2006/xaml/presentation&quot;
+      xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot;
++     xmlns:viewmodels=&quot;clr-namespace:FSharpWpfGuide.ViewModels;assembly=FSharpWpfGuide&quot;
+-     Title=&quot;Testing&quot;
++     Title=&quot;{Binding Title}&quot;
+      Height=&quot;200&quot;
+      Width=&quot;400&quot;
+      &gt;
+      &lt;Window.DataContext&gt;
+          &lt;viewmodels:MainFormViewModel /&gt;
+      &lt;/Window.DataContext&gt;
+      &lt;Canvas&gt;
+      &lt;/Canvas&gt;
+  &lt;/Window&gt;
+</code></pre>
+
+<p>The additional <code>xmlns</code> attribute allows utilizing values from the second
+namespace used in <code>MainForm.xaml.fs</code>, the <code>DataContext</code> definition is added to
+allow nodes to bind their values to values from the type specified (in this
+case, the <code>MainFormViewModel</code> type), and the adjusted title attribute specifies
+that its value is to be bound to the <code>Title</code> property in the window's
+<code>DataContext</code>. Because the codebase was re-compiled after writing
+<code>MainForm.xaml.fs</code>, IntelliSense and the WPF designer should both know about the
+values specified there, and the title in the preview should show up after
+updating the XAML.</p>
+<p>To ensure that the application will run correctly, there's one last change to
+make. In <code>App.xaml</code>, change the <code>StartupUri</code> attribute to <code>"MainForm.xaml"</code>. The
+application should build and run with no problem now, although it's still a bit
+uninteresting. Hello, world!</p>
+<h3>Building a Data Model</h3>
+<h4>Folders!</h4>
+<p>As mentioned previously, adding folders to an F# project can cause issues. The
+primary concern here is that for code in one file to reference code from another
+file, the "other" file must be compiled prior to compiling the "one file" that
+references it. Enjoy that headache.</p>
+<p>Fortunately, with the MVVM pattern, there is more of a clear order to the files,
+where the View depends on the ViewModel, which depends on the Model; there
+should be no instances where a ViewModel depends on a View, nor a Model
+depending on a ViewModel. However, it does make perfect sense for a ViewModel or
+Model to reference other types at their level.</p>
+<p>In the Solution Explorer, right-click the project and select <code>F# Power Tools -&gt;
+New Folder</code>, and give it the name "Models". Later, it will be necessary to do
+this again for "ViewModels" and "Views". Next, use the <code>F# Power Tools -&gt; Move
+Folder Up</code> option to put the folder at the top of the project file list.</p>
+<h4>Design Models?</h4>
+<p>To quickly explain the purposes of the three folders as they'll be used here:</p>
+<ul>
+<li>
+<p>Models hold data. In the MVVM pattern, they hold all business and data logic
+  as well, although this doesn't always mesh well with F#, so I won't follow
+  that aspect of MVVM at all.</p>
+</li>
+<li>
+<p>ViewModels primarily exist to connect the View and Model together in MVVM. In
+  this guide, most of the logic will reside here, resulting in something closer
+  to the Model-View-Adapter pattern.</p>
+</li>
+<li>
+<p>Views display content for the user and send commands to the ViewModel. Views
+  really shouldn't be concerned with logic, with the most advanced logic here
+  being to change some part of a layout based on content.</p>
+</li>
+</ul>
+<p>As mentioned, the way I'm organizing this doesn't perfectly match the MVVM
+pattern, nor the other well-known pattern, the MVC (Model-View-Controller)
+pattern; the important part about following any of these patterns is to attempt
+to separate data and how it behaves from the way that it's presented, such that
+UI problems are UI problems and code problems are just code problems. Whatever
+the exact results are, don't assume my way is the absolute best (although it
+definitely is, because I said so).</p>
+<p>Now, MVVM can be strictly adhered to in F#, so why haven't I done so? Partly
+because I don't want to repeat as much code, and perfectly following the MVVM
+pattern means a bit more repeated code than I feel like writing.</p>
+<h4>Adding a Data Model</h4>
+<p>In the Models folder, add a file named <code>Car.fs</code> and paste the following code
+into it:</p>
+<pre><code class="FSharp">namespace FSharpWpfGuide.Models
+
+type Make =
+    | Ford
+    | Chevy
+
+type Car =
+    {
+        Make : Make
+        Model : string
+        Year : int
+        Miles : int
+    }
+</code></pre>
+
+<p>This super-short type definition for the <code>Car</code> type is half of the reason I'm
+avoiding strict MVVM adherence in F#; I'll explain why when I get to the
+ViewModels.</p>
+<p>No longer assuming full familiarity with F#, the basic premise here is that a
+type named <code>Make</code> has been defined as being one of two cases: <code>Ford</code> or <code>Chevy</code>
+(sorta like an enum). In production code, it may be undesirable to do that for
+something like vehicle manufacturers, as the list may change. However, some
+things aren't likely to change much, and so defining a type like this makes life
+easier.</p>
+<p>If it's not too much hassle to recompile later, using these "discriminated
+unions" as they're called would still be a good idea for manufactures, as unlike
+enums in C# or VB, F# tends to give compiler warnings anywhere that code hasn't
+been written to fulfill all possible cases it can think of. If special code is
+written for each manufacturer, adding a new one would automatically generate a
+bunch of warnings indicating which code needs to be updated!</p>
+<p>The second type, <code>Car</code>, is defined as a "record", which basically means it has
+fields with names. A discriminated union can have properties as well, but they
+(usually) aren't named.</p>
+<h4>Fixing Compile Order</h4>
+<p>It won't be apparent right now, but Visual Studio has put the <code>Car.fs</code> file at
+the end of the compile listing. Unless that has been fixed since I wrote this,
+compiling the solution will now result in a build error complaining about the
+<code>App.fs</code> file, because it's not the "last" file anymore.</p>
+<p>To fix this, right-click the project and select <code>Unload Project</code>, then
+right-click it again and select <code>Edit FSharpWpfGuide.fspoj</code>. Somewhere in the
+XML will be the following block:</p>
+<pre><code class="XML">&lt;ItemGroup&gt;
+    &lt;Resource Include=&quot;MainForm.xaml&quot; /&gt;
+    &lt;Compile Include=&quot;MainForm.xaml.fs&quot; /&gt;
+    &lt;Resource Includ=&quot;App.xaml&quot; /&gt;
+    &lt;Compile Include=&quot;App.fs&quot; /&gt;
+    &lt;Content Include=&quot;App.config&quot; /&gt;
+    &lt;Content Include=&quot;packages.config&quot; /&gt;
+    &lt;Compile Include=&quot;Models\Car.fs&quot; /&gt;
+&lt;ItemGroup&gt;
+</code></pre>
+
+<p>Just move that <code>Models\Car</code> line up above the <code>MainForm.xaml</code> line. After saving
+the file, right-click the project again and select <code>Reload Project</code>. If the file
+is still open, Visual Studio <em>will</em> complain; just say yes.</p>
+<p>Note that project files use two spaces for indentation, so if you use a
+different number of spaces (or you're a heathen who uses tabs), it would be wise
+to fix the spacing after adjusting the file. Otherwise, Visual Studio will do it
+for you later. There isn't much else to say here except to be aware that the
+project file may need this kind of help again down the road. Welcome to folders
+in F# projects.</p>
+<h3>Adding a ViewModel</h3>
+<p>Go ahead and add a folder named "ViewModels" to the project, and move it up
+until it's directly below the "Models" folder, then add in a file named
+<code>CarViewModel.fs</code>. Given that this is the first file in the folder, it would be
+prudent to re-open the project file and make sure it was added in the correct
+order.</p>
+<p>The contents of <code>CarViewModel.fs</code> will be a bit longer, so I'll go through it in
+sections.</p>
+<pre><code class="FSharp">namespace FSharpWpfGuide.ViewModels
+
+open FSharpWpfGuide
+
+type CarViewModel (vehicle : Models.Car) as self =
+    inherit FSharp.ViewModule.ViewModelBase()
+</code></pre>
+
+<p>This first section is relatively harmless, defining a new class named
+<code>CarViewModel</code> which inherits from <code>FSharp.ViewModule.ViewModelBase.</code> The value
+in parentheses, <code>vehicle</code>, is where arguments to the default constructor go. If
+the class being inherited has any required parameters, they would go inside the
+parentheses following its name.</p>
+<p>Last, the <code>as self</code> allows easy self-referencing from inside the type's body.
+This is akin to C#'s <code>this</code> keyboard, or VB's <code>Me</code>; in fact, replacing <code>self</code>
+with <code>this</code> or <code>Me</code> is entirely possible. I've chosen to use <code>self</code> simply
+because Everyone Else Is Doing It&trade;.</p>
+<pre><code class="FSharp">    let mutable car = vehicle
+</code></pre>
+
+<p>This creates a mutable variable named <code>car</code>, and assigns it the value of
+<code>vehicle</code>. Mutable variables as A Bad Idea&trade; in general, and so functional
+programming tries to do away with them. However, we have a UI to build, and
+mutable state makes UIs much easier to work with. Sorry, F#.</p>
+<pre><code class="FSharp">    let milesToDrive = self.Factory.Backing(&lt;@ self.MilesInput @&gt;, 0)
+</code></pre>
+
+<p>The <code>self</code> identifier didn't take long to get used, did it? The
+<code>ViewModelBase.Factory.Backing</code> function used here takes what is known as a
+"quotation," a default value, and optionally some other values, and results in a
+<code>NotifyingValue</code> containing the default value. Whenever the contents of the
+value are updated, it automatically informs anyone listening that the specified
+property has changed. This provides the <code>INotifyPropertyChanged</code> usefulness with
+minimal work, and do to the quotation being actual code, renaming the property
+later will (assuming Visual Studio's refactoring tools are used)update this use
+of it.</p>
+<pre><code class="FSharp">    let drive () =
+        let miles = milesToDrive.Value
+        if (miles &lt; 0) then invalidArg &quot;miles&quot; &quot;Cannot drive a negative number of miles&quot;
+        let newMiles = miles + car.Miles
+        cat &lt;- { car with Miles = newMiles }
+        self.RaisePropertyChanged &lt;@ self.Miles @&gt;
+</code></pre>
+
+<p>This function brings quite a few new things with it. Two parentheses together as
+<code>()</code> is known as the <code>unit</code> type, which is akin to <code>void</code> in C#, or similar to a
+<code>Sub</code> in VB. It isn't typically needed like this, but due to how this function
+is used later, this <code>unit</code> is specified as a parameter to indicate to code from
+outside F# that the function doesn't require any arguments. In most F# functions
+which take a unit as an argument, it simply indicates that the result of the
+function needs to be regenerated every time it's used, rather than caching the
+value somewhere in memory.</p>
+<p>Next, <code>invalidArg</code> is a build-in F# tool that throws an <code>ArgumentException</code>.
+There are a handful of these exception-throwing functions built-in, and
+information on them and exceptions in F# is available <a href="http://fsharpforfunandprofit.com/posts/exceptions/">here</a>.</p>
+<p>The <code>&lt;-</code> operator updates a mutable variable (<code>car</code> in this case) and sets it to
+the value on the right. I mentioned earlier that I'd cover the choice to make
+<code>Car</code> a record type, and here it is: F# primarily deals with the mathematic
+concept of values, insomuch as that new values never replace old ones, and the
+contents of a value can never be changed. Of course this is a problem when one
+wishes to change one piece of a vehicle's data, and record types allow this
+syntax to do so. <code>{ car with Miles = newMiles }</code> isn't actually changing the
+car's <code>Miles</code> value, it's telling F# to copy the <code>car</code> value and to use
+<code>newMiles</code> as the new car's <code>Miles</code> value. Still with me? While it's possible to
+use mutable values for each of the car's properties, as done for the entire
+<code>car</code> value, it's typically better and easier to follow F#'s concept of values
+as much as possible. Immutable unchanging values that simply get covered up by
+new values are much safer than constantly changing state.</p>
+<p>Last, <code>self.RaisePropertyChanged &lt;@ self.Miles @&gt;</code> does the same thing that the
+<code>milesToDrive</code> value does automatically, and informs anyone listening that the
+<code>Miles</code> property has changed. This tells the View (which doesn't exist yet) that
+any bindings it has which reference that value need to be updated in the UI.</p>
+<pre><code class="FSharp">    let driveCommand =
+        self.Factory.CommandSyncChecked(
+            drive,
+            (fun () -&gt; milesToDrive.Value &gt; 0),
+            [&lt;@ self.MilesInput @&gt;]
+            )
+</code></pre>
+
+<p>The <code>CommandSyncChecked</code> function creates a value which implements the
+<code>ICommand</code> interface, which means that <code>driveCommand</code> is now something that a
+XAML-defined button can use as its <code>Command</code> property. There are a handful of
+functions for synchronous vs asynchronous commands, with or without a parameter,
+and with or without a way to turn off the command. However, I've run into many
+issues trying to utilize the versions with parameters, so be aware that your
+results may vary if choosing to go that route.</p>
+<p><code>(fun x -&gt; ...)</code> is the syntax for declaring a lambda, like <code>(() =&gt; ...)</code> in C#
+or <code>Sub() ...</code> in VB. This function is what the UI will call when it wants to
+know if it can use this command, and as with the <code>drive</code> function earlier, it
+needs to accept a <code>unit</code> value due to interop with C# and VB, and to indicate to
+other F# code that it has to be called every time and not cached.</p>
+<p>Last, we provide a list of quotations mentioning which properties this command
+depends on. A list of two things in F# looks roughly like <code>[ 1; 2 ]</code>. In this
+case, since the contents of the <code>milesToDrive</code> value will be different after the
+<code>MilesInput</code> property has been changed, I've listed that property. Now, whenever
+the contents of <code>milesToDrive</code> are changed, the code from using
+<code>self.Factory.Backing</code> will tell the UI that the <code>MilesInput</code> property has
+changed, and the UI will automatically know that it needs to check this command
+as well.</p>
+<pre><code class="FSharp">    do
+        self.DependencyTracker.AddPropertyDependency(
+            &lt;@ self.MilesInputText @&gt;,
+            &lt;@ self.MilesInput @&gt;
+            )
+</code></pre>
+
+<p>Sometimes a class needs to <em>do</em> stuff when it's created. A <code>do</code> block is used to
+make that happen, since we haven't really defined a proper constructor yet for
+this class. We'll be creating a property named <code>MilesInputText</code> which just
+formats the contents of <code>MilesInput</code> for display. Since the value of the former
+will be different after the latter has changed, I let the <code>DependencyTracker</code>
+know that a change in the latter means a change in the former.</p>
+<pre><code class="FSharp">    new() =
+        CarViewModel
+            ({
+                Make = Models.Ford;
+                Model = &quot;Mustang GT&quot;;
+                Year = 2001;
+                Miles = 10;
+            })
+</code></pre>
+
+<p>To be used as a <code>DataContext</code>, classes must have a constructor with no
+parameters. Since the <code>CarViewModel</code> class needs some kind of starting value for
+its internal <code>car</code> value, this <code>new()</code> block is used to define another
+constructor which has no parameters, and just calls the other constructor.</p>
+<p>More interestingly, this is the first example of the syntax for creating a value
+of a record type.</p>
+<pre><code class="FSharp">    member __.Make wth get () = car.Make
+    member __.MakeStr
+        with get () =
+            match car.Make with
+            | Models.Ford -&gt; &quot;Ford&quot;
+            | Models.Chevy -&gt; &quot;Chevy&quot;
+    member __.Model with get () = car.Model
+    member __.Miles with get () = car.Miles
+    member __.Drive with get () = driveCommand
+
+    member __.MilesInput
+        with get () = milesToDrive.Value
+        and set value =
+            milesToDrive.Value &lt;- value
+    member __.MilesInputText with get = sprintf &quot;Drive %i miles&quot; milesToDrive.Value
+</code></pre>
+
+<p>Last bit of code is the properties. Properties are defined with the <code>member</code>
+keyword, and can provide a <code>get</code> and/or <code>set</code> function as seen to match the
+read-only or write-only properties used in C# and VB. The exact layout is very
+flexible, so have fun (but not too much fun).</p>
+<p>None of these properties need it, but the two underscores on each declaration
+can be replaced with an identifier, which then provides a reference back to the
+rest of the type. As with the <code>self</code> name at the beginning of this file (which
+does basically the same thing, but on a wider scope), words like <code>this</code> or <code>Me</code>
+can be used here. Although it's technically still possible to use it as a
+reference, two underscores are typically used like this whenever the get/set
+code doesn't need a reference to the rest of the type.</p>
+<h3>Adding a View</h3>
+<p>Now add a folder named "Views" and move it up to just below the "ViewModels"
+folder, and add files named <code>CarView.xmal</code> and <code>CarView.xaml.fs</code>. Make sure
+<code>CarView.xaml</code>'s <code>Build Action</code> gets set to <code>Resource</code>, and then check the
+project file's build order again.</p>
+<p>Replace the contents of <code>CarView.xaml</code> with the following:</p>
+<pre><code class="XML">&lt;UserControl
+    xmlns=&quot;http://schemas.microsoft.com/winfx/2006/xaml/presentation&quot;
+    xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot;
+    xmlns:mc=&quot;http://schemas.openxmlformats.org/markup-compatibility/2006&quot;
+    xmlns:d=&quot;http://schemas.microsoft.com/expression/blend/2008&quot;
+    xmlns:viewmodels=&quot;clr-namespace:FSharpWpfGuide.ViewModels;assembly=FSharpWpfGuide&quot;
+    mc:Ignorable=&quot;d&quot;
+    d:DesignWidth=&quot;409&quot;
+    d:DesignHeight=&quot;92&quot;
+    &gt;
+    &lt;Control.DataContext&gt;
+        &lt;viewmodels:CarViewModel /&gt;
+    &lt;/Control.DataContext&gt;
+    &lt;StackPanel&gt;
+        &lt;TextBox Text=&quot;{Binding MilesInput, UpdateSourceTrigger=PropertyChanged}&quot; Name=&quot;MilesBox&quot; /&gt;
+        &lt;Button Name=&quot;DriveButton&quot; Command=&quot;{Binding Drive}&quot; Content=&quot;{Binding MilesInputText}&quot; /&gt;
+        &lt;Label Content=&quot;{Binding Miles}&quot; /&gt;
+    &lt;/StackPanel&gt;
+&lt;/UserControl&gt;
+</code></pre>
+
+<p>Since the <code>CarViewModel</code> type was already defined in the last section, all of
+this XAML just works as-is. When it makes sense to do so, it can be very helpful
+to write the Model's code first, followed by the ViewModel, and leaving the View
+to the end. Of course working in that order isn't always possible.</p>
+<p>This simple UI just displays a text box where the user can enter a number of
+miles, click a button, and update the number of miles on their Mustang. Note
+that the text box for entering miles has an <code>UpdateSourceTrigger</code> value in its
+binding; setting this to <code>PropertyChanged</code> on a <code>TextBox</code> element means that the
+property in the ViewModel will be updated on every keystroke, rather than just
+when focus leaves the box.</p>
+<p>One more point of note here, the <code>Text</code> property on a <code>TextBox</code> control is a
+string, and the property it's being bound to here isn't. It wasn't specified
+anywhere in <code>CarViewModel.fs</code>, but the compiler automatically determined that
+the value of <code>milesToDrive</code> is an integer because the default value was zero.
+Based on that, the compiler also determines that the <code>MilesInput</code> property has
+to be an integer as well, because it's getter returns <code>milesToDrive.Value</code>, and
+its setter puts the provided value into <code>milesToDrive.Value</code>. What this means
+for the UI is that if the user enters <code>1a</code>, the box will get a red outline
+because the underlying code for the UI encountered an exception trying to
+convert <code>1a</code> to an integer. I won't go into detail on how to tell the user about
+that, but it's worth taking the time to do unless you completely trust your
+users.</p>
+<p>Next, replace the contents of <code>CarView.xaml.fs</code> with the following:</p>
+<pre><code class="FSharp">namespace FSharpWpfGuide.Views
+
+type CarView = FsXaml.XAML&lt;&quot;VIews/CarView.xaml&quot;, true&gt;
+</code></pre>
+
+<p>As with <code>MainForm.xaml.fs</code>, the use of the <code>FsXaml.XAML</code> type provider is here
+to generate a type definition based on the contents of the <code>*.xaml</code> file. Unlike
+in <code>MainForm.xaml.fs</code>, this use is actually required! I'll wait to explain why,
+so as to build suspense.</p>
+<p>Open <code>MainForm.xaml</code> and make the following changes:</p>
+<pre><code class="diff">  &lt;Window
+      xmlns=&quot;http://schemas.microsoft.com/winfx/2006/xaml/presentation&quot;
+      xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot;
+      xmlns:viewmodels=&quot;clr-namespace:FSharpWpfGuide.ViewModels;assembly=FSharpWpfGuide&quot;
++     xmlns:views=&quot;clr-namespace:FSharpWpfGuide.Views;assembly=FSharpWpfGuide&quot;
+      Title=&quot;{Binding Title}&quot;
+      Height=&quot;200&quot;
+      Width=&quot;400&quot;
+      &gt;
+      &lt;Window.DataContext&gt;
+          &lt;viewmodels:MainFormViewModel /&gt;
+      &lt;/Window.DataContext&gt;
+      &lt;Canvas&gt;
++         &lt;views:CarView /&gt;
+      &lt;/Canvas&gt;
+  &lt;/Window&gt;
+</code></pre>
+
+<p>This change adds a <code>CarView</code> to <code>MainForm</code>.</p>
+<p>In a VB or C# project with WPF, a bit of the extra work with XAML files is done
+automatically, but since WPF projects for F# aren't supported directly by Visual
+Studio, a type isn't generated for every <code>*.xaml</code> file in the project. To
+relieve the building suspense, what that means is that in a VB or C# project
+with WPF, rougly the same stuff that the <code>FsXaml.XAML</code> type provider built when
+called iin <code>CarView.xaml.fs</code> is normally built by Visual Studio. Without that
+line in <code>CarView.xaml.fs</code>, writing <code>&lt;views:CarView /&gt;</code> in <code>MainForm.xaml</code> would
+result in a compiler error, saying that it can't find the definition for
+<code>CarView</code>. Thank you, type provider!</p>
+<h3>Completion?</h3>
+<p>The project is now complete! The program allows a user to add miles to their
+virtual Mustang. Not terribly useful, but adding a save button or a load button
+wouldn't take much extra work. But wait, there's more!</p>
+<h3>Adding Another ViewModel</h3>
+<p>Back in the <code>ViewModels</code> folder, add a file named <code>CarListViewModel.fs</code> below
+<code>CarViewModel.fs</code>. When I did this, Visual Studio created the file at the bottom
+of the project, rather than in the folder specified; if this happens,
+right-click the file and use the <code>F# Power Tools -&gt; Move To Folder</code> option to
+fix this.</p>
+<p>Replace the contents of <code>CarListViewModel.fs</code> with the following:</p>
+<pre><code class="FSharp">namespace FSharpWpfGuide.ViewModels
+
+open FSharpWpfGuide
+
+type CarListViewModel() =
+    inherit FSharp.ViewModule.ViewModelBase()
+
+    let cars = System.Collections.ObjectModel.ObservableCollection&lt;CarViewModel&gt;()
+
+    do
+        cars.Add(new CarViewModel())
+        cars.Add(new CarViewModel({ Make = Models.Chevy; Model = &quot;Camaro ZL1&quot;; Year = 2015; Miles = 10; }))
+
+
+    member __.Cars with get () = cars
+</code></pre>
+
+<p>Not a lot to talk about here, so I'll focus on the new type being used, the
+<code>ObservableCollection&lt;T&gt;</code>. This collection type gives us a way to define a
+collection that can be watched for changes, which allows WPF elements such as
+the <code>ListView</code> control to use the collection as a source for list display.
+Adding or removing things from the collection automatically feeds information
+back to the UI.</p>
+<h3>Adding Another View</h3>
+<p>In the <code>Views</code> folder, add a file named <code>CarListView.xaml</code> and another named
+<code>CarListView.xaml.fs</code>. As before, adding directly to the folder will likely
+result in them showing up at the bottom of the project, at which point they'll
+have to be moved with that <code>F# Power Tools</code> option.</p>
+<p>For the moment, replace the contents of <code>CarListView.xaml</code> with the following:</p>
+<pre><code class="XML">&lt;UserControl
+    xmlns=&quot;http://schemas.microsoft.com/winfx/2006/xaml/presentation&quot;
+    xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot;
+    xmlns:mc=&quot;http://schemas.openxmlformats.org/markup-compatibility/2006&quot;
+    xmlns:d=&quot;http://schemas.microsoft.com/expression/blend/2008&quot;
+    xmlns:viewmodels=&quot;clr-namespace:FSharpWpfGuide.ViewModels;assembly=FSharpWpfGuide&quot;
+    mc:Ignorable=&quot;d&quot;
+    d:DesignWidth=&quot;200&quot;
+    d:DesignHeight=&quot;100&quot;
+    &gt;
+    &lt;Control.DataContext&gt;
+        &lt;viewmodels:CarListViewModel /&gt;
+    &lt;/Control.DataContext&gt;
+    &lt;StackPanel&gt;
+        &lt;Button Content=&quot;Say Hi&quot; x:Name=&quot;TestButton&quot; /&gt;
+        &lt;ListView ItemsSource=&quot;{Binding Cars}&quot; x:Name=&quot;CarList&quot;&gt;
+            &lt;ListView.ItemTemplate&gt;
+                &lt;DataTemplate&gt;
+                    &lt;StackPanel Orientation=&quot;Horizontal&quot;&gt;
+                        &lt;Label Content=&quot;{Binding MakeStr}&quot; /&gt;
+                        &lt;Label Content=&quot;{Binding Model}&quot; /&gt;
+                    &lt;/StackPanel&gt;
+                &lt;/DataTemplate&gt;
+            &lt;/ListView.ItemTemplate&gt;
+        &lt;/ListView&gt;
+    &lt;/StackPanel&gt;
+&lt;/UserControl&gt;
+</code></pre>
+
+<p>Notice that the <code>ListView</code> used here binds its <code>ItemsSource</code> to the <code>Cars</code>
+property from <code>CarListViewModel</code>.</p>
+<p>Next, replace the contents of <code>CarListView.xaml.fs</code> with the following:</p>
+<pre><code class="FSharp">namespace FSharpWpfGuide.Views
+
+type CarListView = FsXaml.XAML&lt;&quot;Views/CarListView.xaml&quot;, true&gt;
+</code></pre>
+
+<p>Terribly exciting as usual, but now we have a form with a button that doesn't do
+anything. In general, it's preferred to use the <code>ICommand</code> stuff from before
+(the <code>Drive</code> property from <code>CarViewModel.fs</code>), but for the sake of showing off
+more stuff, I'll use the code-behind for something resembling the common coding
+style frequently seen with WinForms.</p>
+<h3>Adding a Controller</h3>
+<p>In the <code>CarListView.xaml.fs</code> file, add the following type definition:</p>
+<pre><code class="FSharp">type CarListViewController() =
+    inherit FsXaml.UserControlViewController&lt;CarListView&gt;()
+
+    let buttonClick (parent : CarListView) _ =
+        let msg txt = System.Windows.MessageBox.Show(txt) |&gt; ignore
+        match parent.CarList.SelectedItem with
+        | :? FSharpWpfGuide.ViewModels.CarViewModel as x -&gt;
+            sprintf &quot;Hello. You've selected the %s %s&quot; x.MakeStr x.Model
+            |&gt; msg
+        | _ -&gt; msg &quot;Hi. You haven't selected a car yet.&quot;
+
+    override self.OnInitialized view =
+        view.TestButton.Click.Subscribe (buttonClick view) |&gt; self.DisposeOnUnload
+</code></pre>
+
+<p>Suddenly there's a lot going on in a small space again. This new
+<code>CarListViewController</code> type inherits the <code>UserControlViewController&lt;T&gt;</code> type,
+which provides a short list of helper functions we can override,
+<code>OnInitialized</code>, <code>OnLoaded</code>, and <code>OnUnloaded</code>, as well as the <code>DisposeOnUnload</code>
+function. Although they don't provide a full way of linking a button's click
+event to an event handler as easily as we can in VB/C#, they do provide a place
+to manually do so.</p>
+<p>Because the button and textbox defined in <code>CarListView.xaml</code> both have <code>x:Name</code>
+attributes, they can be referenced whenever an instance of the parent
+<code>CarListView</code> value is available. Thus, in the <code>OnInitialized</code> function,
+<code>view.TestButton.Click.Subscribe</code> allows us to add an event handler to the
+<code>TestButton</code> object's <code>Click</code> event.</p>
+<p>Since the <code>buttonClick</code> function needs a reference back to the View to find out
+what the selected car is, I've used a functional-programming feature known as
+"currying." Notice that where the function is used, I've passed it <code>view</code> as an
+argument, but the function takes two parameters, not one! Through some
+background magic in F#, this is a normal thing, and a function that takes two
+parameters can be called with just one argument, and then result will actually
+be another function which only takes the other parameter. This primarily works
+with functions defined in F#, and doesn't work well with functions defined in
+VB/C#, but it's a useful feature to be aware of.</p>
+<p>Next, calling the <code>Subscribe</code> function on an event like this returns a
+disposable object. As with external database connections or file handles, this
+object needs to be properly disposed of to avoid memory leaks, so we use <code>|&gt;
+self.DisposeOnUnload</code> to make sure that it is disposed when the View unloads.</p>
+<p>Moving on to the <code>buttonClick</code> function, I've used an underscore in two places
+that would normally have a variable name: in the function definition as a
+parameter, and later in the second cast of the <code>match ... with</code> block. An
+underscore in one of these places, as with the double-underscore on <code>member</code>
+definitions, is how we indicate that the actual value provided is unimportant to
+us; the main difference here is that when an underscore is used like this, F#
+will actually prevent us from utilizing the value, versus the double-underscore
+which still acted as a strange variable name. Sometimes to make things easier,
+F# developers will provide names for different values even though the value
+doesn't matter to them; in these cases it's preferred to start the name with an
+underscore still, to at least tell other developers that it is unused.</p>
+<p>Next, I've used the <code>match ... with</code> block to pattern match against the selected
+item, but my first match case uses a type name and the <code>:?</code> operator, so that
+when the <code>SelectedItem</code> value is a <code>CarViewModel</code>, it will be stored temporarily
+in <code>x</code> (because I specified <code>as x</code>), and then the body of that match will run.
+If the user hasn't selected a vehicle yet, the <code>SelectedItem</code> value will be
+null, so the other match just accepts anything.</p>
+<h3>Wrapping Up</h3>
+<p>Head back into <code>CarListView.xaml</code> and apply the following change:</p>
+<pre><code class="diff">  &lt;UserControl
+      xmlns=&quot;http://schemas.microsoft.com/winfx/2006/xaml/presentation&quot;
+      xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot;
+      xmlns:mc=&quot;http://schemas.openxmlformats.org/markup-compatibility/2006&quot;
+      xmlns:d=&quot;http://schemas.microsoft.com/expression/blend/2008&quot;
+      xmlns:viewmodels=&quot;clr-namespace:FSharpWpfGuide.ViewModels;assembly=FSharpWpfGuide&quot;
++     xmlns:views=&quot;clr-namespace:FSharpWpfGuide.Views;assembly=FSharpWpfGuide&quot;
++     xmlns:fsxaml=&quot;http://github.com/fsprojects/FsXaml&quot;
++     fsxaml:ViewController.Custom=&quot;{x:Type views:CarListViewController}&quot;
+      mc:Ignorable=&quot;d&quot;
+      d:DesignWidth=&quot;200&quot;
+      d:DesignHeight=&quot;100&quot;
+</code></pre>
+
+<p>The addition of the <code>fscaml:ViewController.Custom</code> value tells the type provider
+that the <code>CarListViewController</code> type should be the controller used for this
+XAML element.</p>
+<p>Next, in <code>MainForm.xaml</code>, change <code>&lt;views:CarView /&gt;</code> to <code>&lt;views:CarListView /&gt;</code>,
+and give the program a go. The window should now come up and display a short
+list of the two vehicles we put in, and a button that when clicked, either tells
+the user that no vehicle has been selected, or informs the user of the make and
+model. Still not a terribly useful application, but this should be enough
+examples to get started.</p>
+<p>That's all I'm going to cover here, since again, this should be enough
+information to get started on useful projects. The resulting source for this
+tutorial is available on <a href="https://github.com/amazingant/FSharpWpfGuide">GitHub</a>.</p>
+        </div>
+
+        <footer>
+                <ul class="meta">
+        <li class="yline author vcard">
+            Posted by <span class="fn">amazingant</span>
+                in <a class="category" href="/">
+                    blog
+                </a>
+        </li>
+        <li><time datetime="2014-12-08T16:53:00+00:00" pubdate>2014-12-08 16:53 (UTC)</time>
+</li>
+            <li class="tags">
+                    <a class="tag" href="/everything/tags/f/">#F#</a>
+                    <a class="tag" href="/everything/tags/fsharp/">#FSharp</a>
+                    <a class="tag" href="/everything/tags/wpf/">#WPF</a>
+                    <a class="tag" href="/everything/tags/net/">#.NET</a>
+            </li>
+    </ul>
+
+        </footer>
+    </article>
+        </div>
+
+<aside id="sidebar">
+
+
+    <ul class="navigation">
+                    <li>
+            <a href="/blog/">
+                <div class="-label">
+                    <h2>Blag</h2>
+                    <p class="-details">The babbling about tech that you're here for</p>
+                </div>
+            </a>
+        </li>
+
+        <li class="-empty"></li>
+        <li class="-empty"></li>
+                    <li>
+            <a href="https://twitter.com/amazingant">
+                <div class="-label">
+                    <h2>Twitter</h2>
+                    <p class="-details">I twit on tweeter sometimes? Usually to complain about something.</p>
+                </div>
+            </a>
+        </li>
+
+                    <li>
+            <a href="https://github.com/amazingant/">
+                <div class="-label">
+                    <h2>GitHub</h2>
+                    <p class="-details">Many useless bits of code I've written can be found here</p>
+                </div>
+            </a>
+        </li>
+
+    </ul>
+
+    <section>
+        <h2><a href="/everything/archives/">Recent</a></h2>
+        <ul id="recent_posts">
+                <li class="post">
+                    <a href="/blog/2016/01/04/union-values-in-wpf/">
+                        Union Values in WPF
+                    </a>
+                </li>
+                <li class="post">
+                    <a href="/blog/2015/03/13/custom-attributes-on-fsharp-union-cases/">
+                        Custom attributes on F#'s Discriminated Union cases
+                    </a>
+                </li>
+                <li class="post">
+                    <a href="/blog/2014/12/08/FSharp-and-WPF/">
+                        F# and WPF
+                    </a>
+                </li>
+                <li class="post">
+                    <a href="/blog/2013/10/21/code-blocks-per-github/">
+                        Code blocks per GitHub
+                    </a>
+                </li>
+                <li class="post">
+                    <a href="/blog/2013/01/04/new-initial-commit-in-git/">
+                        New Initial Commit in Git
+                    </a>
+                </li>
+        </ul>
+    </section>
+
+    <section>
+        <h2><a href="/everything/tags/">Tags</a></h2>
+        <div class="sidebar-tags">
+                    <a href="/everything/tags/f/">F#</a>
+                    <a href="/everything/tags/fsharp/">FSharp</a>
+                    <a href="/everything/tags/net/">.NET</a>
+                    <a href="/everything/tags/wpf/">WPF</a>
+        </div>
+    </section>
+
+</aside>    </div>
+        <footer role="contentinfo">
+            <p>
+                © 2011-2016 amazingant (Anthony Perez)
+                &middot;
+                <a
+                    rel="license"
+                    href="https://creativecommons.org/licenses/by-nc-sa/4.0/"
+                    >
+                    <img
+                        title="Licensed under Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License"
+                        alt="Licensed under Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License"
+                        style="border-width:0"
+                        src="https://i.creativecommons.org/l/by-nc-sa/4.0/80x15.png"
+                        />
+                </a>
+                &middot;
+                <a href="/disclaimers/">
+                    Site-Disclaimers
+                </a>
+                &middot;
+                <a href="https://github.com/amazingant/amazingant.com">
+                    Source code
+                </a>
+            </p>
+        </footer>
+    </body>
+</html>

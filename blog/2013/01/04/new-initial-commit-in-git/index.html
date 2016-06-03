@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>New Initial Commit in Git / Tech Babble</title>
+        <meta name="author" content="amazingant" />
+
+
+        <meta name="HandheldFriendly" content="True" />
+        <meta name="MobileOptimized" content="320" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+        <link href="/favicon.png" rel="icon" />
+        <link
+            href="/theme/css/all.css"
+            media="screen, projection"
+            rel="stylesheet"
+            type="text/css"
+            />
+
+    </head>
+    <body>
+    <header role="banner">
+        <h1><a href="/">Tech Babble | <span id="site-desc">the random musings of a techie</span></a></h1>
+        <nav role="navigation"></nav>
+    </header>
+    <div id="main">
+        <div id="content">
+    <article class="single" role="article">
+        <header>
+            <p class="meta"><time datetime="2013-01-04T13:01:10+00:00" pubdate>2013-01-04 13:01 (UTC)</time>
+</p>
+            <h1>
+                <a href="/blog/2013/01/04/new-initial-commit-in-git/">
+                    New Initial Commit in Git
+                </a>
+            </h1>
+        </header>
+
+        <div class="entry-content">
+            
+            <p>If you're trying to use git's rebase command on your repo's first commit, you
+may not feel there are many options. What I found you could do is to create an
+empty commit in a new blank branch, and then rebase everything else off of that
+commit, essentially creating a new "original" commit.</p>
+<!-- more -->
+
+<hr />
+<p>The great thing here is it gets your initial commit to a place where you can use
+git rebase to make to make changes to it; the bad thing here is that you're
+modifying history, which is never a good idea for anything you've shared with
+anyone, especially since in this case you'll be modifying every commit in the
+entire repo to have a new origin of this "new" initial commit.</p>
+<p>If you're sure you haven't shared the repo with anyone yet, and you don't mind
+rewriting history, here's the code:</p>
+<pre><code class="sh"># Create a new empty branch called 'newroot'
+git symbolic-ref HEAD refs/heads/newroot
+git rm --cached -r .
+git clean -f -d
+# Create a first commit
+git commit --allow-empty -m 'initial commit'
+# Rebase everything onto this new initial commit
+git rebase --onto newroot --root master
+# Kill off your empty branch
+git branch -d newroot
+</code></pre>
+
+<p>And there you go! If you're doing this to add previous history to your git
+repository as I was doing, this can give you what you need to add commits in
+before the "beginning of time," remembering to pass <code>--date=""</code> when you create
+that commit.</p>
+<p>For those reading this wondering why I needed to do this, I was attempting to
+condense numerous copies of source code amounting to ~8.5GiB into a git
+repository that I could use to reference old changes. The resulting repository
+was ~300MiB, and came in at just over 100MiB as a bare clone for dumping on a
+company server.</p>
+<p>The code I used above is taken from the current best answer to a stackoverflow
+question <a href="http://stackoverflow.com/questions/645450/insert-a-commit-before-the-root-commit-in-git">here</a>.</p>
+<p>Edit 2014-08-01: Mostly for the sake of myself in the future, please note that
+<code>git checkout --orphan &lt;branchname&gt;</code> works perfectly if you just want a branch
+with no history. This doesn't help when you're trying to rebase your
+repository's history on top of some additional history you found (or made up?).
+I've started keeping a journal as a git repository, and in this case, I want to
+keep different branches for different purposes, and I don't want them
+intermingled; for this purpose, I have a "work" branch and a "home" branch in
+the same repository that share no common history.</p>
+        </div>
+
+        <footer>
+                <ul class="meta">
+        <li class="yline author vcard">
+            Posted by <span class="fn">amazingant</span>
+                in <a class="category" href="/">
+                    blog
+                </a>
+        </li>
+        <li><time datetime="2013-01-04T13:01:10+00:00" pubdate>2013-01-04 13:01 (UTC)</time>
+</li>
+            <li class="tags">
+                    <a class="tag" href="/everything/tags/git/">#git</a>
+                    <a class="tag" href="/everything/tags/self-help/">#self-help</a>
+            </li>
+    </ul>
+
+        </footer>
+    </article>
+        </div>
+
+<aside id="sidebar">
+
+
+    <ul class="navigation">
+                    <li>
+            <a href="/blog/">
+                <div class="-label">
+                    <h2>Blag</h2>
+                    <p class="-details">The babbling about tech that you're here for</p>
+                </div>
+            </a>
+        </li>
+
+        <li class="-empty"></li>
+        <li class="-empty"></li>
+                    <li>
+            <a href="https://twitter.com/amazingant">
+                <div class="-label">
+                    <h2>Twitter</h2>
+                    <p class="-details">I twit on tweeter sometimes? Usually to complain about something.</p>
+                </div>
+            </a>
+        </li>
+
+                    <li>
+            <a href="https://github.com/amazingant/">
+                <div class="-label">
+                    <h2>GitHub</h2>
+                    <p class="-details">Many useless bits of code I've written can be found here</p>
+                </div>
+            </a>
+        </li>
+
+    </ul>
+
+    <section>
+        <h2><a href="/everything/archives/">Recent</a></h2>
+        <ul id="recent_posts">
+                <li class="post">
+                    <a href="/blog/2016/01/04/union-values-in-wpf/">
+                        Union Values in WPF
+                    </a>
+                </li>
+                <li class="post">
+                    <a href="/blog/2015/03/13/custom-attributes-on-fsharp-union-cases/">
+                        Custom attributes on F#'s Discriminated Union cases
+                    </a>
+                </li>
+                <li class="post">
+                    <a href="/blog/2014/12/08/FSharp-and-WPF/">
+                        F# and WPF
+                    </a>
+                </li>
+                <li class="post">
+                    <a href="/blog/2013/10/21/code-blocks-per-github/">
+                        Code blocks per GitHub
+                    </a>
+                </li>
+                <li class="post">
+                    <a href="/blog/2013/01/04/new-initial-commit-in-git/">
+                        New Initial Commit in Git
+                    </a>
+                </li>
+        </ul>
+    </section>
+
+    <section>
+        <h2><a href="/everything/tags/">Tags</a></h2>
+        <div class="sidebar-tags">
+                    <a href="/everything/tags/f/">F#</a>
+                    <a href="/everything/tags/fsharp/">FSharp</a>
+                    <a href="/everything/tags/net/">.NET</a>
+                    <a href="/everything/tags/wpf/">WPF</a>
+        </div>
+    </section>
+
+</aside>    </div>
+        <footer role="contentinfo">
+            <p>
+                © 2011-2016 amazingant (Anthony Perez)
+                &middot;
+                <a
+                    rel="license"
+                    href="https://creativecommons.org/licenses/by-nc-sa/4.0/"
+                    >
+                    <img
+                        title="Licensed under Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License"
+                        alt="Licensed under Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License"
+                        style="border-width:0"
+                        src="https://i.creativecommons.org/l/by-nc-sa/4.0/80x15.png"
+                        />
+                </a>
+                &middot;
+                <a href="/disclaimers/">
+                    Site-Disclaimers
+                </a>
+                &middot;
+                <a href="https://github.com/amazingant/amazingant.com">
+                    Source code
+                </a>
+            </p>
+        </footer>
+    </body>
+</html>

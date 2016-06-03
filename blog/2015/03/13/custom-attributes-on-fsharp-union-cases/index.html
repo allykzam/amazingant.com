@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>Custom attributes on F#'s Discriminated Union cases / Tech Babble</title>
+        <meta name="author" content="amazingant" />
+
+
+        <meta name="HandheldFriendly" content="True" />
+        <meta name="MobileOptimized" content="320" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+        <link href="/favicon.png" rel="icon" />
+        <link
+            href="/theme/css/all.css"
+            media="screen, projection"
+            rel="stylesheet"
+            type="text/css"
+            />
+
+    </head>
+    <body>
+    <header role="banner">
+        <h1><a href="/">Tech Babble | <span id="site-desc">the random musings of a techie</span></a></h1>
+        <nav role="navigation"></nav>
+    </header>
+    <div id="main">
+        <div id="content">
+    <article class="single" role="article">
+        <header>
+            <p class="meta"><time datetime="2015-03-13T15:06:00+00:00" pubdate>2015-03-13 15:06 (UTC)</time>
+</p>
+            <h1>
+                <a href="/blog/2015/03/13/custom-attributes-on-fsharp-union-cases/">
+                    Custom attributes on F#'s Discriminated Union cases
+                </a>
+            </h1>
+        </header>
+
+        <div class="entry-content">
+            
+            <p>Working on a project, I found myself wanting to match different discriminated
+union cases with text for output. Normally I write this out as a discriminated
+union with a separate function that uses pattern matches to determine which
+value to return, but I'd really like to attach the text directly to the
+different union cases. If I could find a way to do that, I wouldn't have to dig
+around my code as much to find out where the different messages came from.</p>
+<p>As I've been poking at .NET's Reflection abilities recently, I figured the
+easiest way for me to make that happen would be to add my own attribute type,
+and apply them to the different union cases. Should be easy enough to get the
+attribute back and pull the text from there, right? Not so fast! Union cases are
+internally defined and hidden from F# code in such a way that you'd have to go
+through the union's type definition, grab values from
+<code>System.Type.GetMembers()</code>, and match them by name; at that point, I may as well
+have just matched the values by union case and not used attributes at all.</p>
+<p>The solution is down in <code>Microsoft.FSharp.Reflection</code>, which provides a handful
+of useful functions for discriminated unions. The process therefore becomes:</p>
+<ul>
+<li>Get the <code>Microsoft.FSharp.Reflection.UnionCaseInfo</code> by passing in the union
+  value and a <code>typeof&lt;X&gt;</code> to the union's type</li>
+<li>Call <code>GetCustomAttributes()</code> on the <code>UnionCaseInfo</code> value</li>
+<li>Filter the returned attribute values (they're an <code>obj</code> array) to find the
+  attribute you want</li>
+<li>Return the contents of the attribute</li>
+</ul>
+<p>This is the full contents of how I did it:</p>
+<noscript>
+<a href="https://gist.github.com/amazingant/7135f89daf6e6bd2a105">Source code on
+GitHub's Gist site</a>
+</noscript>
+
+<p><script
+src="https://gist.github.com/amazingant/7135f89daf6e6bd2a105.js?file=Errors.fs"
+type="text/javascript"></script></p>
+        </div>
+
+        <footer>
+                <ul class="meta">
+        <li class="yline author vcard">
+            Posted by <span class="fn">amazingant</span>
+                in <a class="category" href="/">
+                    blog
+                </a>
+        </li>
+        <li><time datetime="2015-03-13T15:06:00+00:00" pubdate>2015-03-13 15:06 (UTC)</time>
+</li>
+            <li class="tags">
+                    <a class="tag" href="/everything/tags/f/">#F#</a>
+                    <a class="tag" href="/everything/tags/fsharp/">#FSharp</a>
+                    <a class="tag" href="/everything/tags/net/">#.NET</a>
+            </li>
+    </ul>
+
+        </footer>
+    </article>
+        </div>
+
+<aside id="sidebar">
+
+
+    <ul class="navigation">
+                    <li>
+            <a href="/blog/">
+                <div class="-label">
+                    <h2>Blag</h2>
+                    <p class="-details">The babbling about tech that you're here for</p>
+                </div>
+            </a>
+        </li>
+
+        <li class="-empty"></li>
+        <li class="-empty"></li>
+                    <li>
+            <a href="https://twitter.com/amazingant">
+                <div class="-label">
+                    <h2>Twitter</h2>
+                    <p class="-details">I twit on tweeter sometimes? Usually to complain about something.</p>
+                </div>
+            </a>
+        </li>
+
+                    <li>
+            <a href="https://github.com/amazingant/">
+                <div class="-label">
+                    <h2>GitHub</h2>
+                    <p class="-details">Many useless bits of code I've written can be found here</p>
+                </div>
+            </a>
+        </li>
+
+    </ul>
+
+    <section>
+        <h2><a href="/everything/archives/">Recent</a></h2>
+        <ul id="recent_posts">
+                <li class="post">
+                    <a href="/blog/2016/01/04/union-values-in-wpf/">
+                        Union Values in WPF
+                    </a>
+                </li>
+                <li class="post">
+                    <a href="/blog/2015/03/13/custom-attributes-on-fsharp-union-cases/">
+                        Custom attributes on F#'s Discriminated Union cases
+                    </a>
+                </li>
+                <li class="post">
+                    <a href="/blog/2014/12/08/FSharp-and-WPF/">
+                        F# and WPF
+                    </a>
+                </li>
+                <li class="post">
+                    <a href="/blog/2013/10/21/code-blocks-per-github/">
+                        Code blocks per GitHub
+                    </a>
+                </li>
+                <li class="post">
+                    <a href="/blog/2013/01/04/new-initial-commit-in-git/">
+                        New Initial Commit in Git
+                    </a>
+                </li>
+        </ul>
+    </section>
+
+    <section>
+        <h2><a href="/everything/tags/">Tags</a></h2>
+        <div class="sidebar-tags">
+                    <a href="/everything/tags/f/">F#</a>
+                    <a href="/everything/tags/fsharp/">FSharp</a>
+                    <a href="/everything/tags/net/">.NET</a>
+                    <a href="/everything/tags/wpf/">WPF</a>
+        </div>
+    </section>
+
+</aside>    </div>
+        <footer role="contentinfo">
+            <p>
+                © 2011-2016 amazingant (Anthony Perez)
+                &middot;
+                <a
+                    rel="license"
+                    href="https://creativecommons.org/licenses/by-nc-sa/4.0/"
+                    >
+                    <img
+                        title="Licensed under Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License"
+                        alt="Licensed under Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License"
+                        style="border-width:0"
+                        src="https://i.creativecommons.org/l/by-nc-sa/4.0/80x15.png"
+                        />
+                </a>
+                &middot;
+                <a href="/disclaimers/">
+                    Site-Disclaimers
+                </a>
+                &middot;
+                <a href="https://github.com/amazingant/amazingant.com">
+                    Source code
+                </a>
+            </p>
+        </footer>
+    </body>
+</html>
