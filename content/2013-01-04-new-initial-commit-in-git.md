@@ -49,14 +49,26 @@ company server.
 The code I used above is taken from the current best answer to a stackoverflow
 question [here][SOpost].
 
-Edit 2014-08-01: Mostly for the sake of myself in the future, please note that
-`git checkout --orphan <branchname>` works perfectly if you just want a branch
-with no history. This doesn't help when you're trying to rebase your
-repository's history on top of some additional history you found (or made up?).
-I've started keeping a journal as a git repository, and in this case, I want to
-keep different branches for different purposes, and I don't want them
-intermingled; for this purpose, I have a "work" branch and a "home" branch in
-the same repository that share no common history.
+### Edit 2016-06-14:
+
+This post was really intended for my own benefit, and I often come back to the
+page to remember how to do &lt;thing&gt; rather than go find it elsewhere. If
+you just need a new branch with no history, the following command can be used.
+
+```sh
+git checkout --orphan <branchname>
+```
+
+This can be helpful for repositories where one branch contains the source code
+for say, a website, and another branch contains the generated content for it;
+this site uses a branch named `generated` with its own history for this purpose,
+much like the `gh-pages` branches that sites hosted by GitHub use.
+
+Note that as of git 2.9.0, git will refuse to let you merge this new branch with
+an existing branch; the intent here is that if two branches have no mutual
+history at all, merging them is likely a mistake. If it isn't a mistake, add
+`--allow-unrelated-histories` to your call to `git merge` and it will let you
+merge them.
 
 
 [SOpost]: http://stackoverflow.com/questions/645450/insert-a-commit-before-the-root-commit-in-git
