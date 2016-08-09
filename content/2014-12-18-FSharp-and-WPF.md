@@ -3,7 +3,7 @@ date: 2014-12-08 16:53
 modified: 2016-05-20 16:05
 category: blog
 tags: F#, FSharp, WPF, .NET
-wpf-archive: 383
+wp-archive: 383
 
 In certain projects, it may be deemed appropriate to utilize both F# and WPF.
 Visual Studio has a large number of issues that make this difficult, not the
