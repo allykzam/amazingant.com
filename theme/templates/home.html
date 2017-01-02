@@ -37,7 +37,7 @@
 
         <hr />
 
-        {% for page in PAGES %}
+        {% for page in pages %}
             {% if page.metadata.get('show-link') %}
                 <a href="{{ SITEURL }}/{{ page.url }}" style="background-color: {{ page.metadata.get('home-color') }}; background-image: url('/theme/images/{{ page.metadata.get('home-image') }}');">
                     <h1>{{ page.metadata.get("home-title", page.title) }}</h1>
