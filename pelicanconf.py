@@ -62,10 +62,22 @@ PAGINATION_PATTERNS = (
 )
 
 THEME = "theme"
-MD_EXTENSIONS = [
-    # GitHub-style fenced code blocks
-    "fenced_code"
-]
+MARKDOWN = {
+    "extension_configs": {
+        # GitHub-style fenced code blocks
+        "fenced_code": {},
+        # Allows defining abbreviations for words that are auto-inserted with
+        # the HTML `abbr` tag
+        "abbr": {},
+        # Adds table support
+        "tables": {},
+        # Syntax-highlighting? Would be nice, but need to add CSS rules for it
+        #"codehilite": {},
+        # Can be used for creating a table-of-contents, but more importantly,
+        # adds an anchor to H1-H6 elements so that they can be linked to.
+        "toc": { "anchorlink": "True" }
+    }
+}
 
 PATH = "content/"
 PAGE_PATHS = ["../pages/"]
