@@ -61,7 +61,7 @@ acceptable, the Community edition of Visual Studio 2013 and later supports
 extensions, and should work well if Professional is not available.</p>
 <!-- more -->
 
-<h3>Visual Studio 2010 Support</h3>
+<h3 id="visual-studio-2010-support"><a class="toclink" href="#visual-studio-2010-support">Visual Studio 2010 Support</a></h3>
 <p>Visual Studio 2010 and earlier aren't supported at all for this method of
 building a F#/WPF application, because of the magic of type providers.
 Unfortunately, they were introduced into Visual Studio with 2012 and the release
@@ -74,7 +74,7 @@ library containing the Model and ViewModel layers of the MVVM pattern.</p>
 <p>I only mention all of this because I've had to support building everything in
 Visual Studio 2010, so while this tutorial may work well for some, it has the
 potential to be entirely useless for others.</p>
-<h3>One-Time Setup</h3>
+<h3 id="one-time-setup"><a class="toclink" href="#one-time-setup">One-Time Setup</a></h3>
 <p>These extra tools are not required when working with an existing project, but
 may still prove useful at some later point. First up, download and install the
 <code>F# Empty WPF Project</code> extension; this can be found
@@ -87,7 +87,7 @@ wonderful goodies. It's certainly worth installing if you plan to use F#, even
 if you don't plan to work with WPF. See <a href="https://fsprojects.github.io/VisualFSharpPowerTools/folderorganization.html#Limitations">this section</a>
 for some of the pitfalls of folders in F# projects; it's getting better, but
 isn't exactly a perfect situation.</p>
-<h3>Getting Started</h3>
+<h3 id="getting-started"><a class="toclink" href="#getting-started">Getting Started</a></h3>
 <p>Once the empty project extension is installed, create a new project using the
 <code>F# Empty Windows App (WPF)</code> template; I've named mine <code>FSharpWpfGuide</code>. This
 project type automatically includes three NuGet packages:</p>
@@ -114,7 +114,7 @@ run as an administrator. That said, to continue, the type provider needs to be
 enabled.</strike></p>
 <p>This warning doesn't come up anymore, as of Visual Studio 2015 with Update 1.
 Yay!</p>
-<h4>Files</h4>
+<h4 id="files"><a class="toclink" href="#files">Files</a></h4>
 <p>According to the Solution Explorer, the new project should contain the following
 files:</p>
 <ul>
@@ -154,7 +154,7 @@ files:</p>
 <li>NuGet utilizes this XML file to track the packages installed, as well as the
     required version numbers.</li>
 </ul>
-<h3>Adding a Window</h3>
+<h3 id="adding-a-window"><a class="toclink" href="#adding-a-window">Adding a Window</a></h3>
 <p>For the sake of going through more work, remove the files <code>MainWindow.xaml</code> and
 <code>MainWindow.xaml.fs</code>. "MainWindow" is a more apt name, but I'll be using
 "MainForm" simply to force myself to show how to change the startup window.</p>
@@ -240,8 +240,8 @@ updating the XAML.</p>
 make. In <code>App.xaml</code>, change the <code>StartupUri</code> attribute to <code>"MainForm.xaml"</code>. The
 application should build and run with no problem now, although it's still a bit
 uninteresting. Hello, world!</p>
-<h3>Building a Data Model</h3>
-<h4>Folders!</h4>
+<h3 id="building-a-data-model"><a class="toclink" href="#building-a-data-model">Building a Data Model</a></h3>
+<h4 id="folders"><a class="toclink" href="#folders">Folders!</a></h4>
 <p>As mentioned previously, adding folders to an F# project can cause issues. The
 primary concern here is that for code in one file to reference code from another
 file, the "other" file must be compiled prior to compiling the "one file" that
@@ -255,7 +255,7 @@ Model to reference other types at their level.</p>
 New Folder</code>, and give it the name "Models". Later, it will be necessary to do
 this again for "ViewModels" and "Views". Next, use the <code>F# Power Tools -&gt; Move
 Folder Up</code> option to put the folder at the top of the project file list.</p>
-<h4>Design Models?</h4>
+<h4 id="design-models"><a class="toclink" href="#design-models">Design Models?</a></h4>
 <p>To quickly explain the purposes of the three folders as they'll be used here:</p>
 <ul>
 <li>
@@ -284,7 +284,7 @@ definitely is, because I said so).</p>
 <p>Now, MVVM can be strictly adhered to in F#, so why haven't I done so? Partly
 because I don't want to repeat as much code, and perfectly following the MVVM
 pattern means a bit more repeated code than I feel like writing.</p>
-<h4>Adding a Data Model</h4>
+<h4 id="adding-a-data-model"><a class="toclink" href="#adding-a-data-model">Adding a Data Model</a></h4>
 <p>In the Models folder, add a file named <code>Car.fs</code> and paste the following code
 into it:</p>
 <pre><code class="FSharp">namespace FSharpWpfGuide.Models
@@ -320,7 +320,7 @@ bunch of warnings indicating which code needs to be updated!</p>
 <p>The second type, <code>Car</code>, is defined as a "record", which basically means it has
 fields with names. A discriminated union can have properties as well, but they
 (usually) aren't named.</p>
-<h4>Fixing Compile Order</h4>
+<h4 id="fixing-compile-order"><a class="toclink" href="#fixing-compile-order">Fixing Compile Order</a></h4>
 <p>It won't be apparent right now, but Visual Studio has put the <code>Car.fs</code> file at
 the end of the compile listing. Unless that has been fixed since I wrote this,
 compiling the solution will now result in a build error complaining about the
@@ -348,7 +348,7 @@ to fix the spacing after adjusting the file. Otherwise, Visual Studio will do it
 for you later. There isn't much else to say here except to be aware that the
 project file may need this kind of help again down the road. Welcome to folders
 in F# projects.</p>
-<h3>Adding a ViewModel</h3>
+<h3 id="adding-a-viewmodel"><a class="toclink" href="#adding-a-viewmodel">Adding a ViewModel</a></h3>
 <p>Go ahead and add a folder named "ViewModels" to the project, and move it up
 until it's directly below the "Models" folder, then add in a file named
 <code>CarViewModel.fs</code>. Given that this is the first file in the folder, it would be
@@ -513,7 +513,7 @@ does basically the same thing, but on a wider scope), words like <code>this</cod
 can be used here. Although it's technically still possible to use it as a
 reference, two underscores are typically used like this whenever the get/set
 code doesn't need a reference to the rest of the type.</p>
-<h3>Adding a View</h3>
+<h3 id="adding-a-view"><a class="toclink" href="#adding-a-view">Adding a View</a></h3>
 <p>Now add a folder named "Views" and move it up to just below the "ViewModels"
 folder, and add files named <code>CarView.xmal</code> and <code>CarView.xaml.fs</code>. Make sure
 <code>CarView.xaml</code>'s <code>Build Action</code> gets set to <code>Resource</code>, and then check the
@@ -601,11 +601,11 @@ called iin <code>CarView.xaml.fs</code> is normally built by Visual Studio. With
 line in <code>CarView.xaml.fs</code>, writing <code>&lt;views:CarView /&gt;</code> in <code>MainForm.xaml</code> would
 result in a compiler error, saying that it can't find the definition for
 <code>CarView</code>. Thank you, type provider!</p>
-<h3>Completion?</h3>
+<h3 id="completion"><a class="toclink" href="#completion">Completion?</a></h3>
 <p>The project is now complete! The program allows a user to add miles to their
 virtual Mustang. Not terribly useful, but adding a save button or a load button
 wouldn't take much extra work. But wait, there's more!</p>
-<h3>Adding Another ViewModel</h3>
+<h3 id="adding-another-viewmodel"><a class="toclink" href="#adding-another-viewmodel">Adding Another ViewModel</a></h3>
 <p>Back in the <code>ViewModels</code> folder, add a file named <code>CarListViewModel.fs</code> below
 <code>CarViewModel.fs</code>. When I did this, Visual Studio created the file at the bottom
 of the project, rather than in the folder specified; if this happens,
@@ -635,7 +635,7 @@ collection that can be watched for changes, which allows WPF elements such as
 the <code>ListView</code> control to use the collection as a source for list display.
 Adding or removing things from the collection automatically feeds information
 back to the UI.</p>
-<h3>Adding Another View</h3>
+<h3 id="adding-another-view"><a class="toclink" href="#adding-another-view">Adding Another View</a></h3>
 <p>In the <code>Views</code> folder, add a file named <code>CarListView.xaml</code> and another named
 <code>CarListView.xaml.fs</code>. As before, adding directly to the folder will likely
 result in them showing up at the bottom of the project, at which point they'll
@@ -683,7 +683,7 @@ anything. In general, it's preferred to use the <code>ICommand</code> stuff from
 (the <code>Drive</code> property from <code>CarViewModel.fs</code>), but for the sake of showing off
 more stuff, I'll use the code-behind for something resembling the common coding
 style frequently seen with WinForms.</p>
-<h3>Adding a Controller</h3>
+<h3 id="adding-a-controller"><a class="toclink" href="#adding-a-controller">Adding a Controller</a></h3>
 <p>In the <code>CarListView.xaml.fs</code> file, add the following type definition:</p>
 <pre><code class="FSharp">type CarListViewController() =
     inherit FsXaml.UserControlViewController&lt;CarListView&gt;()
@@ -742,7 +742,7 @@ when the <code>SelectedItem</code> value is a <code>CarViewModel</code>, it will
 in <code>x</code> (because I specified <code>as x</code>), and then the body of that match will run.
 If the user hasn't selected a vehicle yet, the <code>SelectedItem</code> value will be
 null, so the other match just accepts anything.</p>
-<h3>Wrapping Up</h3>
+<h3 id="wrapping-up"><a class="toclink" href="#wrapping-up">Wrapping Up</a></h3>
 <p>Head back into <code>CarListView.xaml</code> and apply the following change:</p>
 <pre><code class="diff">  &lt;UserControl
       xmlns=&quot;http://schemas.microsoft.com/winfx/2006/xaml/presentation&quot;
@@ -808,15 +808,6 @@ tutorial is available on <a href="https://github.com/amazingant/FSharpWpfGuide">
         </li>
 
         <li class="-empty"></li>
-                        <li>
-            <a href="/about-me/">
-                <div class="-label">
-                    <h2>About Me</h2>
-                    <p class="-details">Info about me, if you're interested in that</p>
-                </div>
-            </a>
-        </li>
-
         <li class="-empty"></li>
                     <li>
             <a href="https://twitter.com/amazingant">
