@@ -289,8 +289,8 @@ values together.
 
 ### Where do I get this amazing code?
 
-I'll update this post when it changes, but for the moment I have not finished
-spot-checking the code. Because I started writing it at work, many of the
-comments mention things that are specific to my job which I'd like to remove
-first, and I'm trying to finish writing up XML docs on each function. Should be
-up on GitHub shortly though.
+Source code is available [on
+GitHub](https://github.com/amazingant/PartialUnions). As of this writing, the
+project is a bit incomplete, but the code needed to start working with the
+samples from this post is there, should work, and has a fair bit of XML
+documentation written.
