@@ -14,6 +14,15 @@ body {
     border-radius: 2em;
 }
 
+pre {
+    overflow-x: auto;
+    background: white;
+}
+
+code {
+    background: white;
+}
+
 div#content {
     max-width: 500px;
 }
