@@ -64,6 +64,12 @@ assets](https://about.twitter.com/company/brand-assets) page. This image belongs
 to Twitter, Inc.
 
 
+<style type="text/css">
+img {
+    width: 128px;
+}
+</style>
+
 
 [alakazam]: /theme/images/alakazam.png
 [avatar]: /theme/images/avatar.png
