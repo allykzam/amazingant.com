@@ -20,7 +20,7 @@
         {% if page.metadata.get("show-link") %}
             {{ _render_link(
                 title=page.metadata.get("home-title", page.title),
-                url=SITEURL + "" + page.url,
+                url=SITEURL + "/" + page.url,
                 desc=page.metadata.get("home-desc", "")
                 ) }}
         {% endif %}
