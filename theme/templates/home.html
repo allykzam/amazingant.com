@@ -1,50 +1,29 @@
-{% extends "_base.html" %}
-{% import "_lib.html" as lib with context %}
-
-{% block entirebody %}
-    <style type="text/css">
-        body {
-            max-width: 750px;
-        }
-    </style>
-    <section class="home-desc">
-        <p>
-            Welcome to my wobsite on the interwho. If you're interested in tech
-            and stuff like I am, there should be lots here for you to look at;
-            if you're not sure what a blag is or what interwho I'm talking
-            about, then you're probably either looking me up (check out the
-            About Me page) or in the wrong place. At any rate, this is my site,
-            and as they say, there are many like it, but this one is mine.
-        </p>
-    </section>
-
-    {% macro _render_link(title, url, color, image, desc) %}
-    <a href="{{ url}}" style="background-color: {{ color }}; background-image: url('/theme/images/{{ image }}');">
-            <h1>{{ title }}</h1>
-            <p>{{ desc }}</p>
-        </a>
-    {% endmacro %}
-
-    <section class="home-links">
-        {% for linkdef in LINKS_EX %}
-            {{ _render_link(*linkdef) }}
-        {% endfor %}
-
-        <hr />
-
-        {% for page in pages %}
-            {% if page.metadata.get('show-link') %}
-                <a href="{{ SITEURL }}/{{ page.url }}" style="background-color: {{ page.metadata.get('home-color') }}; background-image: url('/theme/images/{{ page.metadata.get('home-image') }}');">
-                    <h1>{{ page.metadata.get("home-title", page.title) }}</h1>
-                    <p>{{ page.metadata.get("home-desc", "") }}</p>
-                </a>
-            {% endif %}
-        {% endfor %}
-
-        <hr />
-
-        {% for linkdef in SOCIAL_EX %}
-            {{ _render_link(*linkdef) }}
-        {% endfor %}
-    </section>
-{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>Tech Babble</title>
+        <meta name="author" content="amazingant" />
+        <link
+            href="/theme/css/all.css"
+            media="screen, projection"
+            rel="stylesheet"
+            type="text/css"
+            />
+        <style type="text/css">
+            body {
+                max-width: 750px;
+            }
+            html {
+                background: dimgray;
+            }
+        </style>
+    </head>
+    <body>
+        <section class="home-desc">
+            <p>
+                This site formerly contained a few blog posts and links to my social media accounts. The blog posts remain available <a href="/blog/">here</a>, but the rest of the site has been removed.
+            </p>
+        </section>
+    </body>
+</html>

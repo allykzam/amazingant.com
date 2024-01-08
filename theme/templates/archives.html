@@ -1,41 +1,21 @@
 {% extends "base.html" %}
 {% import "_lib.html" as lib %}
 
-{% block title %}Arvhice / {{ SITENAME }}{% endblock %}
+{% block title %}Archive / {{ SITENAME }}{% endblock %}
 
 {% block content %}
     <section class="archives">
         <h1>Archive</h1>
 
-        {% set last_year = None %}
         {% for article in articles %}
-            {% if last_year != article.date.year %}
-                {% if last_year %}
-                    <hr />
-                {% endif %}
-                <h2>{{ article.date.year }}</h2>
-            {% endif %}
-            {% set last_year = article.date.year %}
 
             <article>
-                <time datetime="{{ article.date.isoformat() }}" pubdate>{{ article.date | strftime("%Y-%m-%d %H:%M (UTC)") }}</time>
                 <h2{% if article.category %} class="category-{{ article.category.slug }}"{% endif %}>
+                    &mdash;
                     <a href="{{ SITEURL }}/{{ article.url }}">
                         {{ article.title | striptags }}
                     </a>
                 </h2>
-
-                <footer>
-                    <ul class="meta">
-                        {% if article.tags %}
-                            <li class="tags">
-                                {% for tag in article.tags %}
-                                    <a class="tag" href="{{ SITEURL }}/{{ tag.url }}">{{ tag }}</a>
-                                {% endfor %}
-                            </li>
-                        {% endif %}
-                    </ul>
-                </footer>
             </article>
         {% endfor %}
     </section>

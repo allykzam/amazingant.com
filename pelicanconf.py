@@ -32,25 +32,6 @@ LINKS_EX = (
     ),
 )
 
-SOCIAL_EX = (
-    (
-        "Twitter",
-        "https://twitter.com/amazingant",
-        "#66757F",
-        "others/twitter-logo.png",
-        "I twit on tweeter sometimes? Usually to complain about something."
-    ),(
-        "GitHub",
-        "https://github.com/amazingant/",
-        "#4078c0",
-        "others/octocat.png",
-        "Many useless bits of code I've written can be found here"
-    )
-)
-
-TWITTER_USERNAME = "amazingant"
-GITHUB_URL = "https://github.com/amazingant/"
-
 # Back to site config
 
 SEARCH_BOX = False
@@ -82,7 +63,7 @@ MARKDOWN = {
 PATH = "content/"
 PAGE_PATHS = ["../pages/"]
 PATH_METADATA = "../pages/(?P<fullpath>.+)[.].+"
-STATIC_PATHS = ["favicon.png", "media/"]
+STATIC_PATHS = ["media/"]
 
 TEMPLATE_PAGES = {
     "../theme/templates/home.html": "index.html",

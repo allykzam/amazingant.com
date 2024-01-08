@@ -1,6 +1,0 @@
-{% if SEARCH_BOX %}
-    <form action="{{ SITESEARCH | default('http://google.com/search') }}" method="get" class="site-search" role="search">
-        <input type="hidden" name="q" value="site:{{ SITEURL | replace('https://','') | replace('http://','') }}" />
-        <input class="search" type="search" name="q" results="0" placeholder="search via google" />
-    </form>
-{% endif %}

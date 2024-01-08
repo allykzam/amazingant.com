@@ -11,26 +11,7 @@
             </ul>
         </section>
     {% endmacro %}
-
-    {% for linkdef in LINKS_EX %}
-        {{ _render_link(*linkdef) }}
-    {% endfor %}
-
-    {% for page in pages %}
-        {% if page.metadata.get("show-link") %}
-            {{ _render_link(
-                title=page.metadata.get("home-title", page.title),
-                url=SITEURL + "/" + page.url,
-                desc=page.metadata.get("home-desc", "")
-                ) }}
-        {% endif %}
-    {% endfor %}
-
-    {% for linkdef in SOCIAL_EX %}
-        {{ _render_link(*linkdef) }}
-    {% endfor %}
-
-
+    
     <section>
         <h2><a href="{{ SITEURL }}/{{ ARCHIVES_URL }}">Recent Posts</a></h2>
         <ul id="recent_posts">
