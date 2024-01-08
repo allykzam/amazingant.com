@@ -4,9 +4,6 @@
         <meta charset="utf-8" />
         <title>.NET and F#: Where functions are functions, except when they're not / Tech Babble</title>
         <meta name="author" content="amazingant" />
-
-
-        <link href="/favicon.png" rel="icon" />
         <link
             href="/theme/css/all.css"
             media="screen, projection"
@@ -27,10 +24,6 @@
 
     </head>
     <body>
-    <header role="banner">
-        <h1><a href="/">Tech Babble | <span id="site-desc">the random musings of a techie</span></a></h1>
-        <nav role="navigation"></nav>
-    </header>
     <div id="main">
         <div id="content">
     <article class="single" role="article">
@@ -53,24 +46,21 @@ documenting my finds here while I remember them.</p>
 
 <p>So in F#, if you want to define a function that adds two values together, you
 can write it very simply:</p>
-<pre><code class="FSharp">let add x y = x + y
+<pre><code class="language-FSharp">let add x y = x + y
 </code></pre>
-
 <p>This definition for <code>add</code> almost doesn't seem worth writing, but it can be
 helpful if, say, you want to perform some logging whenever it's used. This
 function works great when you go to call it too:</p>
-<pre><code class="FSharp">let addNumbers = add 5 10
+<pre><code class="language-FSharp">let addNumbers = add 5 10
 let addStrings = add &quot;a&quot; &quot;b&quot;
 </code></pre>
-
 <p>When I said it works great, what I actually meant is that it works great
 sometimes. If you define <code>add</code> as I did and then try to use it like this, you
 get two errors from the compiler on the <code>addStrings</code> line, telling you that
 <code>"a"</code> and <code>"b"</code> are supposed to be integers, not strings. So how do we fix this?
 Well, you could try giving it a type signature:</p>
-<pre><code class="FSharp">let add (x : 'a) (y : 'a) : 'a = x + y
+<pre><code class="language-FSharp">let add (x : 'a) (y : 'a) : 'a = x + y
 </code></pre>
-
 <p>Except this doesn't work. Rather than fixing things, it adds two warnings now,
 telling you that the <code>addNumbers</code> line is restricting the type <code>'a</code> in the new
 signature to be integers. So taking the time to tell the compiler that this
@@ -79,37 +69,33 @@ you're using it for integers anyway, and it ignores your type signature.</p>
 <p>When I started working with F#, I had actually played around with Haskell a bit
 already, so my initial thought on how to fix this was to give the type signature
 like this instead:</p>
-<pre><code class="FSharp">let add : 'a -&gt; 'b -&gt; 'c =
+<pre><code class="language-FSharp">let add : 'a -&gt; 'b -&gt; 'c =
     fun x y -&gt; x + y
 </code></pre>
-
 <p>If you look through some of my public F# code and search for <code>fun</code>, you'll
 actually find that I've used this style frequently. One of the base points
 everyone makes about functions in a functional programming language is that
 functions are always values, so writing them as a lambda like this shouldn't
 make any difference.</p>
 <p>Moving on, here's how you actually fix <code>add</code>:</p>
-<pre><code class="FSharp">let inline add x y = x + y
+<pre><code class="language-FSharp">let inline add x y = x + y
 </code></pre>
-
 <p>The definitions for <code>addNumbers</code> and <code>addStrings</code> work correctly now! Yay! Now
 if you, like me, had attempted to use full type signatures like <code>'a -&gt; 'b -&gt; 'c</code>
 because you were used to doing that in Haskell, you'll find that there's no way
 to fix your code. Neither of these works:</p>
-<pre><code class="FSharp">let inline add : 'a -&gt; 'b -&gt; 'c =
+<pre><code class="language-FSharp">let inline add : 'a -&gt; 'b -&gt; 'c =
     fun x y -&gt; x + y
 
 let add : 'a -&gt; 'b -&gt; 'c =
     inline fun x y -&gt; x + y
 </code></pre>
-
 <p>The reason here is that in F#, <code>fun</code> is used to define a lambda, and while
 lambdas are functions, they aren't. Makes sense, doesn't it? Equally confusing,
 both of these definitions compile down to the same CIL code:</p>
-<pre><code class="FSharp">let normalFunc x y = x + y
+<pre><code class="language-FSharp">let normalFunc x y = x + y
 let lambdaFunc : 'a -&gt; 'b -&gt; 'c = fun x y -&gt; x + y
 </code></pre>
-
 <p>So the compiled versions are identical, but one is a function and the other
 isn't. Clear as mud.</p>
 <p>At some point since writing my <a href="/blog/2014/12/08/FSharp-and-WPF/">F# and WPF</a> article, I found
@@ -118,13 +104,12 @@ in MvvmLight to work for me. After reviewing the 5.3.0 release notes recently, I
 found out why I had such difficulty. In the messaging tools, you pass an
 <code>Action&lt;T&gt;</code> to a <code>Register</code> function, where <code>T</code> is the type of message you want
 to process. In F# this is easy to do:</p>
-<pre><code class="FSharp">GalaSoft.MvvmLight.Messaging.Messenger.Default.Register
+<pre><code class="language-FSharp">GalaSoft.MvvmLight.Messaging.Messenger.Default.Register
     (
         self,
         fun x -&gt; printfn &quot;Received a message: %s&quot; x
     )
 </code></pre>
-
 <p>This should work, and the F# compiler happily converts our lambda into an
 <code>Action&lt;String&gt;</code> object, and passes it along to the <code>Register</code> method.
 Unfortunately, if you wait around for this lambda to be called, you'll likely
@@ -136,12 +121,11 @@ System.Action&lt;String&gt;(YourLambdaHere)</code>. Since this new <code>Action&
 referenced here and the <code>Messenger</code> class only keeps it in a <code>WeakReference</code>,
 the garbage collector decides that it's free to clean it up.</p>
 <p>Writing this inside of a class you're using, you could try fixing this like so:</p>
-<pre><code class="FSharp">type YourType() as self =
+<pre><code class="language-FSharp">type YourType() as self =
     let messageHandler = new System.Action&lt;String&gt;(fun x -&gt; printfn &quot;Received a message: %s&quot; x)
     do
         GalaSoft.MvvmLight.Messaging.Messenger.Default.Register(self, messageHandler)
 </code></pre>
-
 <p>Writing the code like this better matches how you're likely to have written the
 code in VB or C#, and now <code>messageHandler</code> can use <code>self</code> to access members in
 the current instance of <code>YourType</code>; you could even replace the lambda here with
@@ -152,12 +136,11 @@ constructor ends, the garbage collector decides it can get rid of your handler.<
 <p>The only way to make sure that your handler stays around for as long as the
 instance of <code>YourType</code> does is to mark it with the dreaded <code>mutable</code> keyword. Do
 that, and now this works as expected:</p>
-<pre><code class="FSharp">type YourType() as self =
+<pre><code class="language-FSharp">type YourType() as self =
     let mutable messageHandler = new System.Action&lt;String&gt;(fun x -&gt; printfn &quot;Received a message: %s&quot; x)
     do
         GalaSoft.MvvmLight.Messaging.Messenger.Default.Register(self, messageHandler)
 </code></pre>
-
 <p>This code still creates the <code>Action&lt;String&gt;</code> during the constructor, but
 <code>messageHandler</code> is now an <code>internal</code> field on the type, and sticks around as it
 would if you had written this in VB or C#. Unfortunately, you can't avoid this
@@ -167,13 +150,12 @@ time it's accessed. This puts you right back in the same boat again, and you
 can't (that I know of) add the <code>mutable</code> keyword to a member.</p>
 <p>At this point, all you can really do is try to streamline the effort of creating
 the <code>messageHandler</code> value. A helper function like this one works:</p>
-<pre><code class="FSharp">let BuildAction&lt;'t&gt; f = new System.Action&lt;'t&gt;(f)
+<pre><code class="language-FSharp">let BuildAction&lt;'t&gt; f = new System.Action&lt;'t&gt;(f)
 
 ...
 
     let mutable messageHandler = BuildAction (fun x -&gt; printfn &quot;Received a message: %s&quot; x)
 </code></pre>
-
 <p>This still works because, again, the <code>mutable</code> keyword forces the
 <code>messageHandler</code> to be stored as a field. This also makes it easy enough to
 point to an existing <code>member</code> definition, so it's about as far as I went.</p>
@@ -204,47 +186,7 @@ that value as a function except when you can't. Make sense?</p>
         </div>
 
 <aside id="sidebar">
-
-                <section>
-            <h2><a href="/blog/">Blag</a></h2>
-            <ul>
-                <li>
-                    <p class="details">The babbling about tech that you're here for</p>
-                </li>
-            </ul>
-        </section>
-
-
-                    <section>
-            <h2><a href="/about-me/">About Me</a></h2>
-            <ul>
-                <li>
-                    <p class="details">Info about me, if you're interested in that</p>
-                </li>
-            </ul>
-        </section>
-
-
-                <section>
-            <h2><a href="https://twitter.com/amazingant">Twitter</a></h2>
-            <ul>
-                <li>
-                    <p class="details">I twit on tweeter sometimes? Usually to complain about something.</p>
-                </li>
-            </ul>
-        </section>
-
-                <section>
-            <h2><a href="https://github.com/amazingant/">GitHub</a></h2>
-            <ul>
-                <li>
-                    <p class="details">Many useless bits of code I've written can be found here</p>
-                </li>
-            </ul>
-        </section>
-
-
-
+    
     <section>
         <h2><a href="/everything/archives/">Recent Posts</a></h2>
         <ul id="recent_posts">
@@ -312,10 +254,6 @@ that value as a function except when you can't. Make sense?</p>
                         style="border-width:0"
                         src="https://i.creativecommons.org/l/by-nc-sa/4.0/80x15.png"
                         />
-                </a>
-                &middot;
-                <a href="/disclaimers/">
-                    Site-Disclaimers
                 </a>
                 &middot;
                 <a href="https://github.com/amazingant/amazingant.com">

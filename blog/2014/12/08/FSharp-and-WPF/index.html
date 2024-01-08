@@ -4,9 +4,6 @@
         <meta charset="utf-8" />
         <title>F# and WPF / Tech Babble</title>
         <meta name="author" content="amazingant" />
-
-
-        <link href="/favicon.png" rel="icon" />
         <link
             href="/theme/css/all.css"
             media="screen, projection"
@@ -27,10 +24,6 @@
 
     </head>
     <body>
-    <header role="banner">
-        <h1><a href="/">Tech Babble | <span id="site-desc">the random musings of a techie</span></a></h1>
-        <nav role="navigation"></nav>
-    </header>
     <div id="main">
         <div id="content">
     <article class="single" role="article">
@@ -176,7 +169,7 @@ application will throw an exception at runtime while trying to utilize the
 associated control(s). It will not provide the wonderful compile-time errors and
 warnings that F# developers are used to.</p>
 <p>Moving on, replace all of the text in the file with the following:</p>
-<pre><code class="XML">&lt;Window
+<pre><code class="language-XML">&lt;Window
     xmlns=&quot;http://schemas.microsoft.com/winfx/2006/xaml/presentation&quot;
     xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot;
     Title=&quot;Testing&quot;
@@ -187,7 +180,6 @@ warnings that F# developers are used to.</p>
     &lt;/Canvas&gt;
 &lt;/Window&gt;
 </code></pre>
-
 <p>The contents so far should be pretty easy to understand, so I'll gloss over them
 and stick to the F#-specifics. In the Solution Explorer, right-click <code>Add Below
 -&gt; New Item...</code>, and name the new file <code>MainForm.xaml.fs</code>.</p>
@@ -198,7 +190,7 @@ which references values from other un-compiled files. This is why Visual Studio
 gives us the option to arrange files in a different order with F#, offering the
 <code>Add Above</code> and <code>Add Below</code> options for new files.</p>
 <p>Replace the contents of the new <code>MainForm.xaml.fs</code> with the following:</p>
-<pre><code class="FSharp">namespace FSharpWpfGuide.Views
+<pre><code class="language-FSharp">namespace FSharpWpfGuide.Views
 
 type MainForm = FsXaml.XAML&lt;&quot;MainForm.xaml&quot;, true&gt;
 
@@ -207,7 +199,6 @@ namespace FSharpWpfGuide.ViewModels
 type MainFormViewModel() =
     member __.Title = &quot;F# |&gt; WPF Guide&quot;
 </code></pre>
-
 <p>This new code uses the <code>FsXaml.XAML</code> type provider to generate a type definition
 named <code>MainForm</code>, which is based on the contents of <code>MainForm.xaml</code>. The second
 parameter, <code>true</code> in this case, indicates whether or not the type provider
@@ -217,7 +208,7 @@ we then declare a simple type which contains a single value. There isn't much
 need for this, but it allows for our first data binding. Before proceeding,
 build the solution.</p>
 <p>Back in <code>MainForm.xaml</code>, add the following:</p>
-<pre><code class="diff">  &lt;Window
+<pre><code class="language-diff">  &lt;Window
       xmlns=&quot;https://schemas.microsoft.com/winfx/2006/xaml/presentation&quot;
       xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot;
 +     xmlns:viewmodels=&quot;clr-namespace:FSharpWpfGuide.ViewModels;assembly=FSharpWpfGuide&quot;
@@ -233,7 +224,6 @@ build the solution.</p>
       &lt;/Canvas&gt;
   &lt;/Window&gt;
 </code></pre>
-
 <p>The additional <code>xmlns</code> attribute allows utilizing values from the second
 namespace used in <code>MainForm.xaml.fs</code>, the <code>DataContext</code> definition is added to
 allow nodes to bind their values to values from the type specified (in this
@@ -294,7 +284,7 @@ pattern means a bit more repeated code than I feel like writing.</p>
 <h4 id="adding-a-data-model"><a class="toclink" href="#adding-a-data-model">Adding a Data Model</a></h4>
 <p>In the Models folder, add a file named <code>Car.fs</code> and paste the following code
 into it:</p>
-<pre><code class="FSharp">namespace FSharpWpfGuide.Models
+<pre><code class="language-FSharp">namespace FSharpWpfGuide.Models
 
 type Make =
     | Ford
@@ -308,7 +298,6 @@ type Car =
         Miles : int
     }
 </code></pre>
-
 <p>This super-short type definition for the <code>Car</code> type is half of the reason I'm
 avoiding strict MVVM adherence in F#; I'll explain why when I get to the
 ViewModels.</p>
@@ -335,7 +324,7 @@ compiling the solution will now result in a build error complaining about the
 <p>To fix this, right-click the project and select <code>Unload Project</code>, then
 right-click it again and select <code>Edit FSharpWpfGuide.fspoj</code>. Somewhere in the
 XML will be the following block:</p>
-<pre><code class="XML">&lt;ItemGroup&gt;
+<pre><code class="language-XML">&lt;ItemGroup&gt;
     &lt;Resource Include=&quot;MainForm.xaml&quot; /&gt;
     &lt;Compile Include=&quot;MainForm.xaml.fs&quot; /&gt;
     &lt;Resource Includ=&quot;App.xaml&quot; /&gt;
@@ -345,7 +334,6 @@ XML will be the following block:</p>
     &lt;Compile Include=&quot;Models\Car.fs&quot; /&gt;
 &lt;ItemGroup&gt;
 </code></pre>
-
 <p>Just move that <code>Models\Car</code> line up above the <code>MainForm.xaml</code> line. After saving
 the file, right-click the project again and select <code>Reload Project</code>. If the file
 is still open, Visual Studio <em>will</em> complain; just say yes.</p>
@@ -363,14 +351,13 @@ prudent to re-open the project file and make sure it was added in the correct
 order.</p>
 <p>The contents of <code>CarViewModel.fs</code> will be a bit longer, so I'll go through it in
 sections.</p>
-<pre><code class="FSharp">namespace FSharpWpfGuide.ViewModels
+<pre><code class="language-FSharp">namespace FSharpWpfGuide.ViewModels
 
 open FSharpWpfGuide
 
 type CarViewModel (vehicle : Models.Car) as self =
     inherit FSharp.ViewModule.ViewModelBase()
 </code></pre>
-
 <p>This first section is relatively harmless, defining a new class named
 <code>CarViewModel</code> which inherits from <code>FSharp.ViewModule.ViewModelBase.</code> The value
 in parentheses, <code>vehicle</code>, is where arguments to the default constructor go. If
@@ -380,16 +367,14 @@ parentheses following its name.</p>
 This is akin to C#'s <code>this</code> keyboard, or VB's <code>Me</code>; in fact, replacing <code>self</code>
 with <code>this</code> or <code>Me</code> is entirely possible. I've chosen to use <code>self</code> simply
 because Everyone Else Is Doing It&trade;.</p>
-<pre><code class="FSharp">    let mutable car = vehicle
+<pre><code class="language-FSharp">    let mutable car = vehicle
 </code></pre>
-
 <p>This creates a mutable variable named <code>car</code>, and assigns it the value of
 <code>vehicle</code>. Mutable variables as A Bad Idea&trade; in general, and so functional
 programming tries to do away with them. However, we have a UI to build, and
 mutable state makes UIs much easier to work with. Sorry, F#.</p>
-<pre><code class="FSharp">    let milesToDrive = self.Factory.Backing(&lt;@ self.MilesInput @&gt;, 0)
+<pre><code class="language-FSharp">    let milesToDrive = self.Factory.Backing(&lt;@ self.MilesInput @&gt;, 0)
 </code></pre>
-
 <p>The <code>self</code> identifier didn't take long to get used, did it? The
 <code>ViewModelBase.Factory.Backing</code> function used here takes what is known as a
 "quotation," a default value, and optionally some other values, and results in a
@@ -399,14 +384,13 @@ property has changed. This provides the <code>INotifyPropertyChanged</code> usef
 minimal work, and do to the quotation being actual code, renaming the property
 later will (assuming Visual Studio's refactoring tools are used)update this use
 of it.</p>
-<pre><code class="FSharp">    let drive () =
+<pre><code class="language-FSharp">    let drive () =
         let miles = milesToDrive.Value
         if (miles &lt; 0) then invalidArg &quot;miles&quot; &quot;Cannot drive a negative number of miles&quot;
         let newMiles = miles + car.Miles
         cat &lt;- { car with Miles = newMiles }
         self.RaisePropertyChanged &lt;@ self.Miles @&gt;
 </code></pre>
-
 <p>This function brings quite a few new things with it. Two parentheses together as
 <code>()</code> is known as the <code>unit</code> type, which is akin to <code>void</code> in C#, or similar to a
 <code>Sub</code> in VB. It isn't typically needed like this, but due to how this function
@@ -435,14 +419,13 @@ new values are much safer than constantly changing state.</p>
 <code>milesToDrive</code> value does automatically, and informs anyone listening that the
 <code>Miles</code> property has changed. This tells the View (which doesn't exist yet) that
 any bindings it has which reference that value need to be updated in the UI.</p>
-<pre><code class="FSharp">    let driveCommand =
+<pre><code class="language-FSharp">    let driveCommand =
         self.Factory.CommandSyncChecked(
             drive,
             (fun () -&gt; milesToDrive.Value &gt; 0),
             [&lt;@ self.MilesInput @&gt;]
             )
 </code></pre>
-
 <p>The <code>CommandSyncChecked</code> function creates a value which implements the
 <code>ICommand</code> interface, which means that <code>driveCommand</code> is now something that a
 XAML-defined button can use as its <code>Command</code> property. There are a handful of
@@ -463,20 +446,19 @@ the contents of <code>milesToDrive</code> are changed, the code from using
 <code>self.Factory.Backing</code> will tell the UI that the <code>MilesInput</code> property has
 changed, and the UI will automatically know that it needs to check this command
 as well.</p>
-<pre><code class="FSharp">    do
+<pre><code class="language-FSharp">    do
         self.DependencyTracker.AddPropertyDependency(
             &lt;@ self.MilesInputText @&gt;,
             &lt;@ self.MilesInput @&gt;
             )
 </code></pre>
-
 <p>Sometimes a class needs to <em>do</em> stuff when it's created. A <code>do</code> block is used to
 make that happen, since we haven't really defined a proper constructor yet for
 this class. We'll be creating a property named <code>MilesInputText</code> which just
 formats the contents of <code>MilesInput</code> for display. Since the value of the former
 will be different after the latter has changed, I let the <code>DependencyTracker</code>
 know that a change in the latter means a change in the former.</p>
-<pre><code class="FSharp">    new() =
+<pre><code class="language-FSharp">    new() =
         CarViewModel
             ({
                 Make = Models.Ford;
@@ -485,14 +467,13 @@ know that a change in the latter means a change in the former.</p>
                 Miles = 10;
             })
 </code></pre>
-
 <p>To be used as a <code>DataContext</code>, classes must have a constructor with no
 parameters. Since the <code>CarViewModel</code> class needs some kind of starting value for
 its internal <code>car</code> value, this <code>new()</code> block is used to define another
 constructor which has no parameters, and just calls the other constructor.</p>
 <p>More interestingly, this is the first example of the syntax for creating a value
 of a record type.</p>
-<pre><code class="FSharp">    member __.Make wth get () = car.Make
+<pre><code class="language-FSharp">    member __.Make wth get () = car.Make
     member __.MakeStr
         with get () =
             match car.Make with
@@ -508,7 +489,6 @@ of a record type.</p>
             milesToDrive.Value &lt;- value
     member __.MilesInputText with get = sprintf &quot;Drive %i miles&quot; milesToDrive.Value
 </code></pre>
-
 <p>Last bit of code is the properties. Properties are defined with the <code>member</code>
 keyword, and can provide a <code>get</code> and/or <code>set</code> function as seen to match the
 read-only or write-only properties used in C# and VB. The exact layout is very
@@ -526,7 +506,7 @@ folder, and add files named <code>CarView.xmal</code> and <code>CarView.xaml.fs<
 <code>CarView.xaml</code>'s <code>Build Action</code> gets set to <code>Resource</code>, and then check the
 project file's build order again.</p>
 <p>Replace the contents of <code>CarView.xaml</code> with the following:</p>
-<pre><code class="XML">&lt;UserControl
+<pre><code class="language-XML">&lt;UserControl
     xmlns=&quot;http://schemas.microsoft.com/winfx/2006/xaml/presentation&quot;
     xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot;
     xmlns:mc=&quot;http://schemas.openxmlformats.org/markup-compatibility/2006&quot;
@@ -546,7 +526,6 @@ project file's build order again.</p>
     &lt;/StackPanel&gt;
 &lt;/UserControl&gt;
 </code></pre>
-
 <p>Since the <code>CarViewModel</code> type was already defined in the last section, all of
 this XAML just works as-is. When it makes sense to do so, it can be very helpful
 to write the Model's code first, followed by the ViewModel, and leaving the View
@@ -570,17 +549,16 @@ convert <code>1a</code> to an integer. I won't go into detail on how to tell the
 that, but it's worth taking the time to do unless you completely trust your
 users.</p>
 <p>Next, replace the contents of <code>CarView.xaml.fs</code> with the following:</p>
-<pre><code class="FSharp">namespace FSharpWpfGuide.Views
+<pre><code class="language-FSharp">namespace FSharpWpfGuide.Views
 
 type CarView = FsXaml.XAML&lt;&quot;VIews/CarView.xaml&quot;, true&gt;
 </code></pre>
-
 <p>As with <code>MainForm.xaml.fs</code>, the use of the <code>FsXaml.XAML</code> type provider is here
 to generate a type definition based on the contents of the <code>*.xaml</code> file. Unlike
 in <code>MainForm.xaml.fs</code>, this use is actually required! I'll wait to explain why,
 so as to build suspense.</p>
 <p>Open <code>MainForm.xaml</code> and make the following changes:</p>
-<pre><code class="diff">  &lt;Window
+<pre><code class="language-diff">  &lt;Window
       xmlns=&quot;http://schemas.microsoft.com/winfx/2006/xaml/presentation&quot;
       xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot;
       xmlns:viewmodels=&quot;clr-namespace:FSharpWpfGuide.ViewModels;assembly=FSharpWpfGuide&quot;
@@ -597,7 +575,6 @@ so as to build suspense.</p>
       &lt;/Canvas&gt;
   &lt;/Window&gt;
 </code></pre>
-
 <p>This change adds a <code>CarView</code> to <code>MainForm</code>.</p>
 <p>In a VB or C# project with WPF, a bit of the extra work with XAML files is done
 automatically, but since WPF projects for F# aren't supported directly by Visual
@@ -619,7 +596,7 @@ of the project, rather than in the folder specified; if this happens,
 right-click the file and use the <code>F# Power Tools -&gt; Move To Folder</code> option to
 fix this.</p>
 <p>Replace the contents of <code>CarListViewModel.fs</code> with the following:</p>
-<pre><code class="FSharp">namespace FSharpWpfGuide.ViewModels
+<pre><code class="language-FSharp">namespace FSharpWpfGuide.ViewModels
 
 open FSharpWpfGuide
 
@@ -635,7 +612,6 @@ type CarListViewModel() =
 
     member __.Cars with get () = cars
 </code></pre>
-
 <p>Not a lot to talk about here, so I'll focus on the new type being used, the
 <code>ObservableCollection&lt;T&gt;</code>. This collection type gives us a way to define a
 collection that can be watched for changes, which allows WPF elements such as
@@ -648,7 +624,7 @@ back to the UI.</p>
 result in them showing up at the bottom of the project, at which point they'll
 have to be moved with that <code>F# Power Tools</code> option.</p>
 <p>For the moment, replace the contents of <code>CarListView.xaml</code> with the following:</p>
-<pre><code class="XML">&lt;UserControl
+<pre><code class="language-XML">&lt;UserControl
     xmlns=&quot;http://schemas.microsoft.com/winfx/2006/xaml/presentation&quot;
     xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot;
     xmlns:mc=&quot;http://schemas.openxmlformats.org/markup-compatibility/2006&quot;
@@ -676,15 +652,13 @@ have to be moved with that <code>F# Power Tools</code> option.</p>
     &lt;/StackPanel&gt;
 &lt;/UserControl&gt;
 </code></pre>
-
 <p>Notice that the <code>ListView</code> used here binds its <code>ItemsSource</code> to the <code>Cars</code>
 property from <code>CarListViewModel</code>.</p>
 <p>Next, replace the contents of <code>CarListView.xaml.fs</code> with the following:</p>
-<pre><code class="FSharp">namespace FSharpWpfGuide.Views
+<pre><code class="language-FSharp">namespace FSharpWpfGuide.Views
 
 type CarListView = FsXaml.XAML&lt;&quot;Views/CarListView.xaml&quot;, true&gt;
 </code></pre>
-
 <p>Terribly exciting as usual, but now we have a form with a button that doesn't do
 anything. In general, it's preferred to use the <code>ICommand</code> stuff from before
 (the <code>Drive</code> property from <code>CarViewModel.fs</code>), but for the sake of showing off
@@ -692,7 +666,7 @@ more stuff, I'll use the code-behind for something resembling the common coding
 style frequently seen with WinForms.</p>
 <h3 id="adding-a-controller"><a class="toclink" href="#adding-a-controller">Adding a Controller</a></h3>
 <p>In the <code>CarListView.xaml.fs</code> file, add the following type definition:</p>
-<pre><code class="FSharp">type CarListViewController() =
+<pre><code class="language-FSharp">type CarListViewController() =
     inherit FsXaml.UserControlViewController&lt;CarListView&gt;()
 
     let buttonClick (parent : CarListView) _ =
@@ -706,7 +680,6 @@ style frequently seen with WinForms.</p>
     override self.OnInitialized view =
         view.TestButton.Click.Subscribe (buttonClick view) |&gt; self.DisposeOnUnload
 </code></pre>
-
 <p>Suddenly there's a lot going on in a small space again. This new
 <code>CarListViewController</code> type inherits the <code>UserControlViewController&lt;T&gt;</code> type,
 which provides a short list of helper functions we can override,
@@ -751,7 +724,7 @@ If the user hasn't selected a vehicle yet, the <code>SelectedItem</code> value w
 null, so the other match just accepts anything.</p>
 <h3 id="wrapping-up"><a class="toclink" href="#wrapping-up">Wrapping Up</a></h3>
 <p>Head back into <code>CarListView.xaml</code> and apply the following change:</p>
-<pre><code class="diff">  &lt;UserControl
+<pre><code class="language-diff">  &lt;UserControl
       xmlns=&quot;http://schemas.microsoft.com/winfx/2006/xaml/presentation&quot;
       xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot;
       xmlns:mc=&quot;http://schemas.openxmlformats.org/markup-compatibility/2006&quot;
@@ -764,7 +737,6 @@ null, so the other match just accepts anything.</p>
       d:DesignWidth=&quot;200&quot;
       d:DesignHeight=&quot;100&quot;
 </code></pre>
-
 <p>The addition of the <code>fscaml:ViewController.Custom</code> value tells the type provider
 that the <code>CarListViewController</code> type should be the controller used for this
 XAML element.</p>
@@ -802,47 +774,7 @@ tutorial is available on <a href="https://github.com/amazingant/FSharpWpfGuide">
         </div>
 
 <aside id="sidebar">
-
-                <section>
-            <h2><a href="/blog/">Blag</a></h2>
-            <ul>
-                <li>
-                    <p class="details">The babbling about tech that you're here for</p>
-                </li>
-            </ul>
-        </section>
-
-
-                    <section>
-            <h2><a href="/about-me/">About Me</a></h2>
-            <ul>
-                <li>
-                    <p class="details">Info about me, if you're interested in that</p>
-                </li>
-            </ul>
-        </section>
-
-
-                <section>
-            <h2><a href="https://twitter.com/amazingant">Twitter</a></h2>
-            <ul>
-                <li>
-                    <p class="details">I twit on tweeter sometimes? Usually to complain about something.</p>
-                </li>
-            </ul>
-        </section>
-
-                <section>
-            <h2><a href="https://github.com/amazingant/">GitHub</a></h2>
-            <ul>
-                <li>
-                    <p class="details">Many useless bits of code I've written can be found here</p>
-                </li>
-            </ul>
-        </section>
-
-
-
+    
     <section>
         <h2><a href="/everything/archives/">Recent Posts</a></h2>
         <ul id="recent_posts">
@@ -910,10 +842,6 @@ tutorial is available on <a href="https://github.com/amazingant/FSharpWpfGuide">
                         style="border-width:0"
                         src="https://i.creativecommons.org/l/by-nc-sa/4.0/80x15.png"
                         />
-                </a>
-                &middot;
-                <a href="/disclaimers/">
-                    Site-Disclaimers
                 </a>
                 &middot;
                 <a href="https://github.com/amazingant/amazingant.com">

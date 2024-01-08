@@ -4,9 +4,6 @@
         <meta charset="utf-8" />
         <title>F# Partially-Applied Unions / Tech Babble</title>
         <meta name="author" content="amazingant" />
-
-
-        <link href="/favicon.png" rel="icon" />
         <link
             href="/theme/css/all.css"
             media="screen, projection"
@@ -27,10 +24,6 @@
 
     </head>
     <body>
-    <header role="banner">
-        <h1><a href="/">Tech Babble | <span id="site-desc">the random musings of a techie</span></a></h1>
-        <nav role="navigation"></nav>
-    </header>
     <div id="main">
         <div id="content">
     <article class="single" role="article">
@@ -83,7 +76,7 @@ F# function, allowing parameters to be omitted. Static functions on a helper
 type, <code>UnionMetadata&lt;'T&gt;</code>, take the finished quotation, and return a
 <code>UnionMetadata&lt;'T&gt;</code> value, where <code>'T</code> is the union type being worked with. An
 example:</p>
-<pre><code class="FSharp">[&lt;StructuralComparison; StructuralEquality&gt;]
+<pre><code class="language-FSharp">[&lt;StructuralComparison; StructuralEquality&gt;]
 type SomeUnion =
     | CaseA of bool * int * string
     | CaseB of int
@@ -92,11 +85,10 @@ type SomeUnion =
 
 let CaseAWrapper = &lt;@ (fun x y z -&gt; CaseA(x, y, z)) @&gt;
 </code></pre>
-
 <p>With the above code in place, the <code>CaseAWrapper</code> value can be used in another
 quotation, which can then be passed to the <code>FromQuotation</code> function on the
 <code>UnionMetadata</code> type. In F# Interactive, it would look something like this:</p>
-<pre><code class="FSharp">let meta = UnionMetadata&lt;SomeUnion&gt;.FromQuotation &lt;@ (%CaseAWrapper) true @&gt;;;
+<pre><code class="language-FSharp">let meta = UnionMetadata&lt;SomeUnion&gt;.FromQuotation &lt;@ (%CaseAWrapper) true @&gt;;;
 
 val meta : UnionMetadata&lt;SomeUnion&gt; =
     {
@@ -109,7 +101,6 @@ val meta : UnionMetadata&lt;SomeUnion&gt; =
             ]
     }
 </code></pre>
-
 <p>From there, the <code>UnionMetadata&lt;'T&gt;</code> type provides a few helper functions that
 can be used to determine whether or not a given value matches the metadata. In
 this case, one could call <code>meta.ValueMatches (CaseA (true, 5, "test"))</code> which
@@ -117,7 +108,7 @@ would return <code>true</code>; passing <code>CaseA (false, 5, "test")</code> wo
 instead, matching the given contents of the <code>meta</code> value.</p>
 <p>To further test this, the <code>CaseAWrapper</code> value could be rewritten, and the
 <code>meta</code> value updated:</p>
-<pre><code class="FSharp">let CaseAWrapper = &lt;@ (fun y x z -&gt; CaseA(x, y, z)) @&gt;
+<pre><code class="language-FSharp">let CaseAWrapper = &lt;@ (fun y x z -&gt; CaseA(x, y, z)) @&gt;
 let meta = UnionMetadata&lt;SomeUnion&gt;.FromQuotation &lt;@ (%CaseAWrapper) 10 @&gt;;;
 
 val CaseAWrapper : FSharp.Quotations.Expr&lt;(bool -&gt; string -&gt; SomeUnion)&gt;
@@ -133,7 +124,6 @@ val meta : UnionMetadata&lt;SomeUnion&gt; =
             ]
     }
 </code></pre>
-
 <p>Using this updated definition for <code>meta</code>, any <code>CaseA</code> value where the <code>int</code>
 field was set to <code>10</code> would cause <code>meta.ValueMatches</code> to return <code>true</code>, while
 any other <code>int</code> value cause <code>meta.ValueMatches</code> to return <code>false</code>. And that's
@@ -146,9 +136,8 @@ uses to make all of this work is F# quotations. Quotations are a sort of
 as a value, in a sort of custom AST (abstract syntax tree) that they created
 just for this language feature. The full output from F# Interactive for
 <code>CaseAWrapper</code> looks something like this:</p>
-<pre><code class="FSharp">Lambda (y, Lambda (x, Lambda (z, NewUnionCase (CaseA, x, y, z)))
+<pre><code class="language-FSharp">Lambda (y, Lambda (x, Lambda (z, NewUnionCase (CaseA, x, y, z)))
 </code></pre>
-
 <p>At some point during its work, a compiler might generate something like the
 above for code like <code>(fun y x z -&gt; CaseA(x, y, z))</code>. Each <code>Lambda</code> value
 corresponds to one of the function parameters because of how F# handles
@@ -156,9 +145,8 @@ currying (a function that takes two arguments is actually a function that takes
 one argument and returns a new function that takes the other argument), and the
 <code>NewUnionCase</code> value obviously corresponds to the creation of the <code>CaseA</code> value.
 When stuffed into <code>&lt;@ (%CaseAWrapper) 10 @&gt;</code>, the value looks more like this:</p>
-<pre><code class="FSharp">Application (Lambda (y, Lambda (x, Lambda (z, NewUnionCase (CaseA, x, y, z))), Value (10))
+<pre><code class="language-FSharp">Application (Lambda (y, Lambda (x, Lambda (z, NewUnionCase (CaseA, x, y, z))), Value (10))
 </code></pre>
-
 <p>The added <code>Application</code> on the left side, and the <code>Value (10)</code> on the right
 side, correspond to the fact that you have performed "function application" by
 supplying an argument for the function's first parameter. The
@@ -178,7 +166,7 @@ functions on the <code>UnionMetadata&lt;'T&gt;</code> type takes these three typ
 this is where the <code>UnionCase</code> value is populated from.</p>
 <h3 id="so-what-can-i-do-with-it"><a class="toclink" href="#so-what-can-i-do-with-it">So what can I do with it?</a></h3>
 <p>Well, I mean, whatever you want to? Here's an example of how I'm using it:</p>
-<pre><code class="FSharp">type Microsoft.FSharp.Collections.Map&lt;'Key, 'TValue when 'Key : comparison&gt; with
+<pre><code class="language-FSharp">type Microsoft.FSharp.Collections.Map&lt;'Key, 'TValue when 'Key : comparison&gt; with
     static member addOrUpdate (key : 'Key) (value : 'TValue) (update : 'TValue -&gt; 'TValue) (oldMap : Map&lt;'Key, 'TValue&gt;) : Map&lt;'Key, 'TValue&gt; =
         if Map.containsKey key oldMap then
             let oldVal = oldMap.[key]
@@ -246,7 +234,6 @@ type ExclusivityRules =
             )
         |&gt; Seq.toList
 </code></pre>
-
 <p>The first bit of code adds an extension function <code>addOrUpdate</code> to the type
 <code>Map&lt;_,_&gt;</code>, (roughly matching the method of the same name on the
 <code>ConcurrentDictionary</code> type) followed by a new type to hold my collection of
@@ -270,7 +257,7 @@ values, and does most of the legwork, so the <code>MutuallyExclusive</code> over
 need to call the right <code>FromQuotation</code> overload and pass the results off to the
 <code>AddMutualExclusion</code> function.</p>
 <p>From there, I can do this:</p>
-<pre><code class="FSharp">let rules =
+<pre><code class="language-FSharp">let rules =
     ExclusivityRules.Empty
     |&gt; ExclusivityRules.MutuallyExclusive (&lt;@ CaseB @&gt;, &lt;@ (%CaseAWrapper) 10 @&gt;)
     |&gt; ...
@@ -284,7 +271,6 @@ let test = rules.GetMutualExclusions (CaseA true 10 &quot;Test&quot;) current
 
 val test : SomeUnion list = [CaseB 5]
 </code></pre>
-
 <p>In my actual code I'm not using the <code>SomeUnion</code> type, but this is the same basic
 concept. Depending on what else you want to do, you could extend this to track
 certain types of behavior that vary slightly between cases of a union. Or
@@ -321,47 +307,7 @@ documentation written.</p>
         </div>
 
 <aside id="sidebar">
-
-                <section>
-            <h2><a href="/blog/">Blag</a></h2>
-            <ul>
-                <li>
-                    <p class="details">The babbling about tech that you're here for</p>
-                </li>
-            </ul>
-        </section>
-
-
-                    <section>
-            <h2><a href="/about-me/">About Me</a></h2>
-            <ul>
-                <li>
-                    <p class="details">Info about me, if you're interested in that</p>
-                </li>
-            </ul>
-        </section>
-
-
-                <section>
-            <h2><a href="https://twitter.com/amazingant">Twitter</a></h2>
-            <ul>
-                <li>
-                    <p class="details">I twit on tweeter sometimes? Usually to complain about something.</p>
-                </li>
-            </ul>
-        </section>
-
-                <section>
-            <h2><a href="https://github.com/amazingant/">GitHub</a></h2>
-            <ul>
-                <li>
-                    <p class="details">Many useless bits of code I've written can be found here</p>
-                </li>
-            </ul>
-        </section>
-
-
-
+    
     <section>
         <h2><a href="/everything/archives/">Recent Posts</a></h2>
         <ul id="recent_posts">
@@ -429,10 +375,6 @@ documentation written.</p>
                         style="border-width:0"
                         src="https://i.creativecommons.org/l/by-nc-sa/4.0/80x15.png"
                         />
-                </a>
-                &middot;
-                <a href="/disclaimers/">
-                    Site-Disclaimers
                 </a>
                 &middot;
                 <a href="https://github.com/amazingant/amazingant.com">
